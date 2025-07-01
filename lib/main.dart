@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sow_and_grow/Auth/Auth_mongo.dart';
-import 'package:sow_and_grow/Auth/loginPage.dart';
-import 'package:sow_and_grow/UserPage/ContentPage.dart';
-import 'package:sow_and_grow/utils/language_provider.dart';
+import 'package:sow_and_grow/Auth/Service/Auth_Service.dart';
+import 'package:sow_and_grow/Auth/UI/loginPage.dart';
+import 'package:sow_and_grow/Navigations/ContentPage.dart';
+import 'package:sow_and_grow/utils/Language/language_provider.dart';
 
 void main() {
   runApp(
