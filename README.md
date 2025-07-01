@@ -68,6 +68,12 @@ Sow&Grow addresses the challenges faced by rural farmers, especially those lacki
 
 ---
 
+## 📸 Screenshots
+
+[Drive Link](https://drive.google.com/drive/folders/1Wtnws7KfFGfdtW0MnelPB_bsFw71JwVl?usp=drive_link)
+
+---
+
 ## 👥 Team
 
 **Solo Project** by,
