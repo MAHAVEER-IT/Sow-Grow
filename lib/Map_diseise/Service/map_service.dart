@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Model/map_model.dart';
 
 class DiseasePointService {
-  // Base URL for API
+  // Base URL for API (removed trailing slash)
   final String baseUrl =
       'https://farmcare-backend-new.onrender.com/api/v1/disease-points';
 
@@ -19,6 +19,11 @@ class DiseasePointService {
   // Create headers with auth token
   Future<Map<String, String>> _createHeaders() async {
     final token = await _getToken();
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token not found. Please login again.');
+    }
+
     return {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
@@ -48,41 +53,87 @@ class DiseasePointService {
         queryParams['endDate'] = endDate.toIso8601String();
       }
 
-      if (diseaseName != null) {
+      if (diseaseName != null && diseaseName.isNotEmpty) {
         queryParams['diseaseName'] = diseaseName;
       }
 
-      if (cropType != null) {
+      if (cropType != null && cropType.isNotEmpty) {
         queryParams['cropType'] = cropType;
       }
 
       // Create URI with query parameters
-      final uri = Uri.parse(baseUrl).replace(queryParameters: queryParams);
+      // Remove empty query parameters to avoid issues
+      queryParams.removeWhere((key, value) => value.isEmpty);
+
+      final uri = Uri.parse(
+        baseUrl,
+      ).replace(queryParameters: queryParams.isEmpty ? null : queryParams);
+
+      print('Query Parameters: $queryParams'); // Log query parameters
+      print('Requesting all disease points from: $uri'); // Log request URI
+
+      // Get headers with token
+      final headers = await _createHeaders();
+      print(
+        'Request Headers: ${headers.keys.join(", ")}',
+      ); // Log headers (without token value)
 
       // Send request
-      final response = await http.get(uri, headers: await _createHeaders());
+      final response = await http.get(uri, headers: headers);
+
+      print('Response Status Code: ${response.statusCode}'); // Log status code
+      print('API Response Body: ${response.body}'); // Debug print
 
       // Check response
       if (response.statusCode == 200) {
-        print('API Response Body: ${response.body}'); // Debug print
         final data = json.decode(response.body);
 
+        if (data['data'] == null ||
+            (data['data'] is List && data['data'].isEmpty)) {
+          print('No disease points found in response.');
+          return [];
+        }
+
         if (data['success'] == true) {
-          final List<dynamic> pointsJson = data['data'];
-          return pointsJson
-              .map((pointJson) => DiseasePoint.fromJson(pointJson))
+          final List<dynamic> pointsJson = data['data'] as List;
+          print('Parsing ${pointsJson.length} disease points...');
+
+          final parsedPoints = pointsJson
+              .map((pointJson) {
+                try {
+                  return DiseasePoint.fromJson(
+                    pointJson as Map<String, dynamic>,
+                  );
+                } catch (e) {
+                  print('Error parsing disease point: $e');
+                  print('Problematic JSON: $pointJson');
+                  return null;
+                }
+              })
+              .whereType<DiseasePoint>() // Filter out null values
               .toList();
+
+          print('Successfully parsed ${parsedPoints.length} disease points');
+          return parsedPoints;
         } else {
           throw Exception(data['message'] ?? 'Failed to fetch disease points');
         }
-      } else {
+      } else if (response.statusCode == 401) {
+        throw Exception('Unauthorized: Please login again');
+      } else if (response.statusCode == 403) {
         throw Exception(
-          'Failed to fetch disease points: ${response.statusCode}',
+          'Forbidden: You do not have permission to access this resource',
+        );
+      } else {
+        print('Error Response Body: ${response.body}');
+        throw Exception(
+          'Failed to fetch disease points: ${response.statusCode} - ${response.body}',
         );
       }
     } catch (e) {
       print('Error in getAllDiseasePoints: $e');
-      throw Exception('Failed to fetch disease points: $e');
+      print('Stack trace: ${StackTrace.current}');
+      rethrow; // Rethrow to let UI handle it
     }
   }
 
@@ -130,28 +181,53 @@ class DiseasePointService {
         final data = json.decode(response.body);
 
         if (data['success'] == true) {
-          final List<dynamic> pointsJson = data['data'];
-          return pointsJson.map((pointJson) {
-            try {
-              return DiseasePoint.fromJson(pointJson);
-            } catch (e) {
-              print('Error parsing disease point: $e');
-              rethrow;
-            }
-          }).toList();
+          if (data['data'] == null ||
+              (data['data'] is List && data['data'].isEmpty)) {
+            print('No nearby disease points found.');
+            return [];
+          }
+
+          final List<dynamic> pointsJson = data['data'] as List;
+          print('Parsing ${pointsJson.length} nearby disease points...');
+
+          final parsedPoints = pointsJson
+              .map((pointJson) {
+                try {
+                  return DiseasePoint.fromJson(
+                    pointJson as Map<String, dynamic>,
+                  );
+                } catch (e) {
+                  print('Error parsing disease point: $e');
+                  print('Problematic JSON: $pointJson');
+                  return null;
+                }
+              })
+              .whereType<DiseasePoint>()
+              .toList();
+
+          print(
+            'Successfully parsed ${parsedPoints.length} nearby disease points',
+          );
+          return parsedPoints;
         } else {
           throw Exception(
             data['message'] ?? 'Failed to fetch nearby disease points',
           );
         }
+      } else if (response.statusCode == 401) {
+        throw Exception('Unauthorized: Please login again');
+      } else if (response.statusCode == 400) {
+        print('Bad Request: ${response.body}');
+        throw Exception('Bad request: Invalid parameters');
       } else {
+        print('Error Response Body: ${response.body}');
         throw Exception(
-          'Failed to fetch nearby disease points: ${response.statusCode}',
+          'Failed to fetch nearby disease points: ${response.statusCode} - ${response.body}',
         );
       }
     } catch (e) {
       print('Error in getNearbyDiseasePoints: $e');
-      throw Exception('Failed to fetch nearby disease points: $e');
+      rethrow; // Rethrow to let UI handle it
     }
   }
 

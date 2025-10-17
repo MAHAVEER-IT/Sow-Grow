@@ -4,6 +4,9 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:sow_and_grow/Auth/Service/Auth_Service.dart';
 import 'package:sow_and_grow/Auth/UI/signupPage.dart';
+import 'package:sow_and_grow/Auth/UI/widgets/auth_text_field.dart';
+import 'package:sow_and_grow/Auth/UI/widgets/auth_constants.dart';
+import 'package:sow_and_grow/Auth/UI/widgets/snackbar_helper.dart';
 import '../../Navigations/ContentPage.dart';
 
 class LoginPage extends StatefulWidget {
@@ -23,10 +26,6 @@ class _LoginPageState extends State<LoginPage> {
 
   String? _emailError;
   String? _passwordError;
-
-  RegExp emailRegExp = RegExp(
-    r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
-  );
 
   @override
   void initState() {
@@ -48,8 +47,6 @@ class _LoginPageState extends State<LoginPage> {
       // Use the full email if provided, otherwise use as username
       final input = _emailController.text.trim();
 
-      print('Attempting login with input: $input');
-
       final result = await _authService.login(
         username: input,
         password: _passwordController.text,
@@ -58,18 +55,7 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
 
       if (result['success'] == true && result['token'] != null) {
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Login successful'),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            duration: Duration(seconds: 2),
-          ),
-        );
+        SnackbarHelper.showSuccess(context, 'Login successful');
 
         // Add a small delay before navigation
         await Future.delayed(const Duration(milliseconds: 500));
@@ -88,32 +74,13 @@ class _LoginPageState extends State<LoginPage> {
           errorMessage = 'Incorrect password. Please try again.';
         }
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        SnackbarHelper.showError(context, errorMessage);
       }
     } catch (e) {
-      print('Login error: $e');
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Login failed: Network or server error'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          duration: Duration(seconds: 3),
-        ),
+      SnackbarHelper.showError(
+        context,
+        'Login failed: Network or server error',
       );
     } finally {
       if (mounted) {
@@ -153,21 +120,19 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false, // Disable keyboard animation
       body: Container(
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Colors.green.shade800,
-              Colors.green.shade600,
-              Colors.green.shade400,
-            ],
+            colors: [Colors.green.shade50, Colors.green.shade100, Colors.white],
           ),
         ),
         child: SafeArea(
           child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: Column(children: [_buildHeader(), _buildLoginForm()]),
           ),
         ),
@@ -220,7 +185,7 @@ class _LoginPageState extends State<LoginPage> {
                           shadows: [
                             Shadow(
                               blurRadius: 10.0,
-                              color: Colors.black45,
+                              color: Colors.green.shade200,
                               offset: Offset(2, 2),
                             ),
                           ],
@@ -235,7 +200,7 @@ class _LoginPageState extends State<LoginPage> {
                           shadows: [
                             Shadow(
                               blurRadius: 10.0,
-                              color: Colors.black45,
+                              color: Colors.green.shade200,
                               offset: Offset(2, 2),
                             ),
                           ],
@@ -297,7 +262,7 @@ class _LoginPageState extends State<LoginPage> {
             SizedBox(height: 25),
 
             // Email/Username field
-            _buildTextField(
+            AuthTextField(
               controller: _emailController,
               label: 'Email or Username',
               icon: Icons.person_outline,
@@ -307,7 +272,7 @@ class _LoginPageState extends State<LoginPage> {
             SizedBox(height: 20),
 
             // Password field
-            _buildTextField(
+            AuthTextField(
               controller: _passwordController,
               label: 'Password',
               icon: Icons.lock_outline,
@@ -325,40 +290,14 @@ class _LoginPageState extends State<LoginPage> {
                 },
               ),
             ),
-
-            // Forgot password link
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {
-                  // Handle forgot password
-                },
-                child: Text(
-                  'Forgot Password?',
-                  style: TextStyle(
-                    color: Colors.green.shade800,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 10),
-
+            SizedBox(height: 30),
             // Login button
             SizedBox(
               width: double.infinity,
               height: 55,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _handleLogin,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green.shade800,
-                  foregroundColor: Colors.white,
-                  elevation: 5,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                ),
+                style: AuthConstants.primaryButtonStyle,
                 child: _isLoading
                     ? CircularProgressIndicator(
                         color: Colors.white,
@@ -409,7 +348,7 @@ class _LoginPageState extends State<LoginPage> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: Colors.green.shade800,
+                    color: Colors.green.shade600,
                   ),
                 ),
               ),
@@ -437,75 +376,6 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    IconData? icon,
-    String? errorText,
-    bool obscureText = false,
-    Widget? suffixIcon,
-    TextInputType? keyboardType,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        color: Colors.grey.shade50,
-        border: Border.all(
-          color: errorText != null ? Colors.red : Colors.grey.shade300,
-        ),
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        style: TextStyle(fontSize: 16),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 16),
-          errorText: errorText,
-          prefixIcon: icon != null ? Icon(icon, color: Colors.grey) : null,
-          suffixIcon: suffixIcon,
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-          floatingLabelBehavior: FloatingLabelBehavior.never,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSocialButton({
-    required String text,
-    required String imagePath,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 55,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Colors.grey.shade300),
-          color: Colors.white,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(imagePath, height: 24, width: 24),
-            SizedBox(width: 12),
-            Text(
-              text,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey.shade800,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

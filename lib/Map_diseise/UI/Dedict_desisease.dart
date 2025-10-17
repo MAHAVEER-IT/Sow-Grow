@@ -51,16 +51,9 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
     try {
       setState(() => _isLoading = true);
 
-      if (widget.initialLocation != null) {
-        setState(() {
-          _currentLocation = widget.initialLocation;
-          if (widget.selectedDisease != null) {
-            _diseasePoints = [widget.selectedDisease!];
-          }
-        });
+      if (widget.initialLocation == null) {
+        await _getCurrentLocation();
       }
-
-      await _getCurrentLocation();
       await _fetchDiseasePoints(); // Fetch points after location is set
 
       setState(() => _isLoading = false);
@@ -155,6 +148,10 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
       print(
         'Fetching all disease points for: ${_showPlantDiseases ? 'Plants' : 'Animals'}',
       ); // Debug log
+      print(
+        'Date range: ${DateTime(_selectedDate.year, _selectedDate.month, 1)} to ${DateTime(_selectedDate.year, _selectedDate.month + 1, 0)}',
+      );
+
       final points = await _service.getAllDiseasePoints(
         isPlantDisease: _showPlantDiseases,
         startDate: DateTime(_selectedDate.year, _selectedDate.month, 1),
@@ -168,13 +165,29 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
           _diseasePoints = points;
           _isLoading = false;
         });
+
+        // Show a message if no points found
+        if (points.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'No disease points found for ${_showPlantDiseases ? 'plants' : 'animals'} in ${_selectedDate.month}/${_selectedDate.year}',
+              ),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
       }
     } catch (e) {
       print('Error fetching disease points: $e');
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error fetching disease points: $e')),
+          SnackBar(
+            content: Text('Error fetching disease points: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
+          ),
         );
       }
     }
@@ -185,7 +198,8 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Community Disease Heatmap'),
-        backgroundColor: Colors.green[700],
+        backgroundColor: Colors.green[100],
+        foregroundColor: Colors.green[800],
         elevation: 0,
         actions: [
           IconButton(
@@ -203,7 +217,7 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(color: Colors.green),
+                  CircularProgressIndicator(color: Color(0xFF81C784)),
                   SizedBox(height: 16),
                   Text(
                     'Loading map data...',
@@ -220,12 +234,12 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
                     horizontal: 16,
                     vertical: 8,
                   ),
-                  color: Colors.grey[100],
+                  color: Colors.green[50],
                   child: Row(
                     children: [
                       Icon(
                         Icons.location_on,
-                        color: Colors.green[700],
+                        color: Colors.green[400],
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -257,8 +271,6 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
                               if (_mapController != null &&
                                   _currentLocation != null) {
                                 _mapController!.move(_currentLocation!, 13.0);
-                                // Trigger a fetch of disease points when map is ready
-                                _fetchDiseasePoints();
                               }
                             },
                           ),
@@ -267,6 +279,8 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
                               urlTemplate:
                                   'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                               subdomains: ['a', 'b', 'c'],
+                              userAgentPackageName:
+                                  'com.example.sow_and_grow', // Set your app's package name here
                             ),
                             // Show circle markers for zones
                             CircleLayer(circles: _getCircleMarkers()),
@@ -449,7 +463,8 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
             ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showUploadDialog(context),
-        backgroundColor: Colors.green[700],
+        backgroundColor: Colors.green[300],
+        foregroundColor: Colors.green[900],
         label: const Text('Report Disease'),
         icon: const Icon(Icons.add_location),
       ),
@@ -462,24 +477,32 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
         Container(
           padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.red,
+            color: Colors.red[100],
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
             'Red Zone',
-            style: TextStyle(color: Colors.white, fontSize: 12),
+            style: TextStyle(
+              color: Colors.red[900],
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
         SizedBox(width: 8),
         Container(
           padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.amber,
+            color: Colors.amber[100],
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
             'Yellow Zone',
-            style: TextStyle(color: Colors.black, fontSize: 12),
+            style: TextStyle(
+              color: Colors.amber[900],
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
@@ -506,10 +529,10 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
       // Use the case count to determine zone color (red or yellow)
       Color circleColor = _getZoneColor(point.caseCount);
 
-      // Fixed radius based on zone type
+      // Fixed radius based on zone type (in meters)
       double radius = point.caseCount >= 50
-          ? 500.0
-          : 300.0; // Increased radius for better visibility
+          ? 60.0 // Red zone radius (decreased from 500.0)
+          : 50.0; // Yellow zone radius (decreased from 300.0)
 
       print(
         'Generating circle for point at ${point.location} with radius $radius and color $circleColor',
@@ -528,19 +551,19 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
   // New method to determine zone color based on case count
   Color _getZoneColor(int caseCount) {
     // Red zone if cases >= 50, otherwise yellow zone
-    return caseCount >= 50 ? Colors.red : Colors.amber;
+    return caseCount >= 50 ? Colors.red[200]! : Colors.amber[200]!;
   }
 
   // Updated to use case count instead of intensity
   Color _getMarkerColor(int caseCount) {
-    return caseCount >= 50 ? Colors.red : Colors.amber;
+    return caseCount >= 50 ? Colors.red[300]! : Colors.amber[300]!;
   }
 
   Widget _buildFilterBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.green[50],
         boxShadow: [
           BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
         ],
@@ -577,9 +600,17 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
                       Set<MaterialState> states,
                     ) {
                       if (states.contains(MaterialState.selected)) {
-                        return Colors.green.shade100;
+                        return Colors.green.shade200;
                       }
-                      return Colors.transparent;
+                      return Colors.white;
+                    }),
+                    foregroundColor: MaterialStateProperty.resolveWith<Color>((
+                      Set<MaterialState> states,
+                    ) {
+                      if (states.contains(MaterialState.selected)) {
+                        return Colors.green.shade800;
+                      }
+                      return Colors.grey.shade700;
                     }),
                   ),
                 ),
@@ -606,7 +637,8 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
                         return Theme(
                           data: Theme.of(context).copyWith(
                             colorScheme: ColorScheme.light(
-                              primary: Colors.green.shade700,
+                              primary: Colors.green.shade300,
+                              onPrimary: Colors.green.shade900,
                             ),
                           ),
                           child: child!,
@@ -722,7 +754,7 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
             _showPlantDiseases
                 ? 'Report Plant Disease'
                 : 'Report Animal Disease',
-            style: TextStyle(color: Colors.green[700]),
+            style: TextStyle(color: Colors.green[800]),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -811,8 +843,8 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
                   icon: const Icon(Icons.my_location),
                   label: const Text('Use Current Location'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade700,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.blue.shade100,
+                    foregroundColor: Colors.blue.shade900,
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                   onPressed: () async {
@@ -837,7 +869,8 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
             ElevatedButton(
               child: const Text('Submit'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green[700],
+                backgroundColor: Colors.green[300],
+                foregroundColor: Colors.green[900],
               ),
               onPressed: () async {
                 if (diseaseName.isEmpty ||
@@ -879,8 +912,8 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
                         ],
                       ),
                       backgroundColor: caseCount >= 50
-                          ? Colors.red
-                          : Colors.amber,
+                          ? Colors.red[300]
+                          : Colors.amber[300],
                     ),
                   );
                 } catch (e) {
@@ -1067,7 +1100,10 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
           ),
           ElevatedButton(
             child: const Text('Close'),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700]),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green[300],
+              foregroundColor: Colors.green[900],
+            ),
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -1082,7 +1118,7 @@ class _HeatmapPageStateMap extends State<HeatmapPageMap> {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.info_outline, color: Colors.green[700]),
+            Icon(Icons.info_outline, color: Colors.green[400]),
             SizedBox(width: 8),
             Text('Disease Zone Information'),
           ],

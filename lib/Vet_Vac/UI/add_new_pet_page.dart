@@ -57,8 +57,9 @@ class _AddPetScreenState extends State<AddPetScreen> {
                 Center(
                   child: CircleAvatar(
                     radius: 60,
-                    backgroundColor:
-                        Theme.of(context).primaryColor.withOpacity(0.1),
+                    backgroundColor: Theme.of(
+                      context,
+                    ).primaryColor.withOpacity(0.1),
                     child: Icon(
                       _getIconForPetType(_petType),
                       size: 70,
@@ -69,9 +70,9 @@ class _AddPetScreenState extends State<AddPetScreen> {
                 const SizedBox(height: 30),
                 Text(
                   'Cattle Information',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(_nameController, 'Cattle Name', Icons.pets),
@@ -84,13 +85,16 @@ class _AddPetScreenState extends State<AddPetScreen> {
                 const SizedBox(height: 30),
                 Text(
                   'Veterinary Information',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
-                    _vetNameController, 'Vet Name', Icons.medical_services),
+                  _vetNameController,
+                  'Vet Name',
+                  Icons.medical_services,
+                ),
                 const SizedBox(height: 20),
                 _buildTextField(
                   _vetPhoneController,
@@ -134,8 +138,11 @@ class _AddPetScreenState extends State<AddPetScreen> {
   }
 
   Widget _buildTextField(
-      TextEditingController controller, String label, IconData icon,
-      {TextInputType? keyboardType}) {
+    TextEditingController controller,
+    String label,
+    IconData icon, {
+    TextInputType? keyboardType,
+  }) {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(
@@ -151,13 +158,17 @@ class _AddPetScreenState extends State<AddPetScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
-          borderSide:
-              BorderSide(color: Theme.of(context).primaryColor, width: 2),
+          borderSide: BorderSide(
+            color: Theme.of(context).primaryColor,
+            width: 2,
+          ),
         ),
         filled: true,
         fillColor: Colors.white,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
       keyboardType: keyboardType,
       validator: (value) => value!.isEmpty ? 'Required field' : null,
@@ -183,13 +194,17 @@ class _AddPetScreenState extends State<AddPetScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
-          borderSide:
-              BorderSide(color: Theme.of(context).primaryColor, width: 2),
+          borderSide: BorderSide(
+            color: Theme.of(context).primaryColor,
+            width: 2,
+          ),
         ),
         filled: true,
         fillColor: Colors.white,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
       items: List.generate(
         _petTypes.length,
@@ -197,8 +212,11 @@ class _AddPetScreenState extends State<AddPetScreen> {
           value: _petTypes[index],
           child: Row(
             children: [
-              Icon(_petIcons[index],
-                  color: Theme.of(context).primaryColor, size: 20),
+              Icon(
+                _petIcons[index],
+                color: Theme.of(context).primaryColor,
+                size: 20,
+              ),
               const SizedBox(width: 10),
               Text(_petTypes[index]),
             ],
@@ -247,13 +265,17 @@ class _AddPetScreenState extends State<AddPetScreen> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15),
-            borderSide:
-                BorderSide(color: Theme.of(context).primaryColor, width: 2),
+            borderSide: BorderSide(
+              color: Theme.of(context).primaryColor,
+              width: 2,
+            ),
           ),
           filled: true,
           fillColor: Colors.white,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -304,14 +326,14 @@ class _AddPetScreenState extends State<AddPetScreen> {
               Text('${_nameController.text} added successfully!'),
             ],
           ),
-          backgroundColor: Colors.green,
+          backgroundColor: Colors.green.shade700,
           behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           margin: EdgeInsets.all(10),
         ),
       );
-
       Navigator.pop(context);
     }
   }

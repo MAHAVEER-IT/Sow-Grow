@@ -45,9 +45,9 @@ class _ChannelScreenState extends State<ChannelScreen> {
       print('Error loading channels: $e');
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load channels: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load channels: $e')));
       }
     }
   }
@@ -64,9 +64,9 @@ class _ChannelScreenState extends State<ChannelScreen> {
     } catch (e) {
       print('Error joining channel: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to join channel: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to join channel: $e')));
       }
     }
   }
@@ -83,9 +83,9 @@ class _ChannelScreenState extends State<ChannelScreen> {
     } catch (e) {
       print('Error leaving channel: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to leave channel: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to leave channel: $e')));
       }
     }
   }
@@ -106,22 +106,26 @@ class _ChannelScreenState extends State<ChannelScreen> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: const Text('Community Channels'),
-      backgroundColor: Colors.green[700],
+      title: const Text(
+        'Community Channels',
+        style: TextStyle(color: Color(0xFF2D3748), fontWeight: FontWeight.w600),
+      ),
+      backgroundColor: Colors.white,
       elevation: 0,
+      iconTheme: IconThemeData(color: Color(0xFF2D3748)),
       actions: [
         IconButton(
-          icon: const Icon(Icons.qr_code_scanner),
+          icon: const Icon(Icons.qr_code_scanner, color: Color(0xFF48BB78)),
           onPressed: () => _showQRScanner(),
           tooltip: 'Scan QR Code',
         ),
         IconButton(
-          icon: const Icon(Icons.link),
+          icon: const Icon(Icons.link, color: Color(0xFF48BB78)),
           onPressed: _showJoinWithLinkDialog,
           tooltip: 'Join with Link',
         ),
         IconButton(
-          icon: const Icon(Icons.add),
+          icon: const Icon(Icons.add_circle, color: Color(0xFF48BB78)),
           onPressed: _showCreateChannelDialog,
           tooltip: 'Create Channel',
         ),
@@ -140,7 +144,9 @@ class _ChannelScreenState extends State<ChannelScreen> {
               final shareToken = uri.pathSegments.last;
 
               await _channelService.joinChannelViaLink(
-                  shareToken, widget.token);
+                shareToken,
+                widget.token,
+              );
               if (mounted) {
                 await _loadChannels();
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -169,113 +175,147 @@ class _ChannelScreenState extends State<ChannelScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFF5F7FA),
       appBar: _buildAppBar(),
       body: RefreshIndicator(
         onRefresh: _loadChannels,
-        color: Colors.green.shade300,
+        color: Color(0xFF48BB78),
         child: _isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  color: Colors.green.shade300,
+                  color: Color(0xFF48BB78),
+                  strokeWidth: 3,
                 ),
               )
             : _channels.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.group_off_outlined,
-                          size: 64,
-                          color: Colors.grey.shade400,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No channels available',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey.shade600,
-                            fontWeight: FontWeight.w500,
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: Offset(0, 4),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Join or create a channel to start chatting',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.group_off_outlined,
+                        size: 64,
+                        color: Color(0xFF48BB78),
+                      ),
                     ),
-                  )
-                : ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      // Joined Channels Section
-                      if (_channels.any((channel) =>
-                          channel.members.contains(widget.currentUserId))) ...[
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.group,
-                                size: 20,
-                                color: Colors.green.shade700,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Joined Channels',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey.shade800,
-                                ),
-                              ),
-                            ],
+                    const SizedBox(height: 16),
+                    Text(
+                      'No channels available',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Color(0xFF2D3748),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Join or create a channel to start chatting',
+                      style: TextStyle(fontSize: 14, color: Color(0xFF718096)),
+                    ),
+                  ],
+                ),
+              )
+            : ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  // Joined Channels Section
+                  if (_channels.any(
+                    (channel) => channel.members.contains(widget.currentUserId),
+                  )) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Color(0xFFE9F5F0),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.group,
+                              size: 20,
+                              color: Color(0xFF48BB78),
+                            ),
                           ),
-                        ),
-                        ..._channels
-                            .where((channel) =>
-                                channel.members.contains(widget.currentUserId))
-                            .map((channel) => _buildChannelCard(channel, true))
-                            .toList(),
-                        const SizedBox(height: 24),
-                      ],
+                          const SizedBox(width: 8),
+                          Text(
+                            'Joined Channels',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2D3748),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ..._channels
+                        .where(
+                          (channel) =>
+                              channel.members.contains(widget.currentUserId),
+                        )
+                        .map((channel) => _buildChannelCard(channel, true))
+                        .toList(),
+                    const SizedBox(height: 24),
+                  ],
 
-                      // Available Channels Section
-                      if (_channels.any((channel) =>
-                          !channel.members.contains(widget.currentUserId))) ...[
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.group_add,
-                                size: 20,
-                                color: Colors.orange.shade700,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Available Channels',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey.shade800,
-                                ),
-                              ),
-                            ],
+                  // Available Channels Section
+                  if (_channels.any(
+                    (channel) =>
+                        !channel.members.contains(widget.currentUserId),
+                  )) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Color(0xFFFFF5F5),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.group_add,
+                              size: 20,
+                              color: Color(0xFFED8936),
+                            ),
                           ),
-                        ),
-                        ..._channels
-                            .where((channel) =>
-                                !channel.members.contains(widget.currentUserId))
-                            .map((channel) => _buildChannelCard(channel, false))
-                            .toList(),
-                      ],
-                    ],
-                  ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Available Channels',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2D3748),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ..._channels
+                        .where(
+                          (channel) =>
+                              !channel.members.contains(widget.currentUserId),
+                        )
+                        .map((channel) => _buildChannelCard(channel, false))
+                        .toList(),
+                  ],
+                ],
+              ),
       ),
     );
   }
@@ -285,29 +325,32 @@ class _ChannelScreenState extends State<ChannelScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 5,
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: InkWell(
         onTap: isMember ? () => _onChannelTap(channel) : null,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              CircleAvatar(
-                backgroundColor:
-                    isMember ? Colors.green.shade50 : Colors.orange.shade50,
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isMember ? Color(0xFFE9F5F0) : Color(0xFFFFF5F5),
+                  shape: BoxShape.circle,
+                ),
                 child: Icon(
                   Icons.group,
-                  color:
-                      isMember ? Colors.green.shade700 : Colors.orange.shade700,
+                  color: isMember ? Color(0xFF48BB78) : Color(0xFFED8936),
+                  size: 24,
                 ),
               ),
               const SizedBox(width: 16),
@@ -320,57 +363,65 @@ class _ChannelScreenState extends State<ChannelScreen> {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
+                        color: Color(0xFF2D3748),
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '${channel.members.length} members',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
+                      style: TextStyle(fontSize: 14, color: Color(0xFF718096)),
                     ),
                   ],
                 ),
               ),
               if (isMember) ...[
                 IconButton(
-                  icon: Icon(Icons.share, color: Colors.blue.shade700),
+                  icon: Icon(Icons.share, color: Color(0xFF48BB78)),
                   onPressed: () => _shareChannel(channel),
                 ),
                 const SizedBox(width: 8),
               ],
               if (!isMember)
-                TextButton(
-                  onPressed: () => _joinChannel(channel),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.green.shade50,
-                    foregroundColor: Colors.green.shade700,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
+                Container(
+                  decoration: BoxDecoration(
+                    color: Color(0xFFE9F5F0),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: TextButton(
+                    onPressed: () => _joinChannel(channel),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Color(0xFF48BB78),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                    child: const Text(
+                      'Join',
+                      style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ),
-                  child: const Text('Join'),
                 )
               else
-                TextButton(
-                  onPressed: () => _leaveChannel(channel),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.red.shade50,
-                    foregroundColor: Colors.red.shade700,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
+                Container(
+                  decoration: BoxDecoration(
+                    color: Color(0xFFFFF5F5),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: TextButton(
+                    onPressed: () => _leaveChannel(channel),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Color(0xFFE53E3E),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                    child: const Text(
+                      'Leave',
+                      style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ),
-                  child: const Text('Leave'),
                 ),
             ],
           ),
@@ -402,20 +453,21 @@ class _ChannelScreenState extends State<ChannelScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(20)),
+                  color: Color(0xFFE9F5F0),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.share, color: Colors.green.shade700),
+                    Icon(Icons.share, color: Color(0xFF48BB78)),
                     const SizedBox(width: 12),
                     Text(
                       'Share Channel',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade800,
+                        color: Color(0xFF2D3748),
                       ),
                     ),
                   ],
@@ -445,11 +497,11 @@ class _ChannelScreenState extends State<ChannelScreen> {
                         size: 200.0,
                         eyeStyle: QrEyeStyle(
                           eyeShape: QrEyeShape.square,
-                          color: Colors.green.shade700,
+                          color: Color(0xFF48BB78),
                         ),
                         dataModuleStyle: QrDataModuleStyle(
                           dataModuleShape: QrDataModuleShape.square,
-                          color: Colors.green.shade700,
+                          color: Color(0xFF48BB78),
                         ),
                       ),
                     ),
@@ -458,23 +510,30 @@ class _ChannelScreenState extends State<ChannelScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                        color: Color(0xFFF7FAFC),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(color: Color(0xFFE2E8F0)),
                       ),
                       child: Row(
                         children: [
                           Expanded(
                             child: Text(
                               shareableLink,
-                              style: const TextStyle(fontSize: 16),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF2D3748),
+                              ),
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.copy),
+                            icon: const Icon(
+                              Icons.copy,
+                              color: Color(0xFF48BB78),
+                            ),
                             onPressed: () {
                               Clipboard.setData(
-                                  ClipboardData(text: shareableLink));
+                                ClipboardData(text: shareableLink),
+                              );
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Link copied to clipboard'),
@@ -501,12 +560,13 @@ class _ChannelScreenState extends State<ChannelScreen> {
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green.shade700,
+                              backgroundColor: Color(0xFF48BB78),
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(12),
                               ),
+                              elevation: 0,
                             ),
                           ),
                         ),
@@ -563,10 +623,7 @@ class _ChannelScreenState extends State<ChannelScreen> {
             const SizedBox(height: 16),
             Text(
               'Enter the channel link shared with you to join the channel',
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 12,
-              ),
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
             ),
           ],
         ),

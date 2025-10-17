@@ -80,8 +80,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
   Widget build(BuildContext context) {
     print('Building drawer with user type: $_userRole'); // Debug log
     return Drawer(
-      backgroundColor: Colors.green.shade100,
-      surfaceTintColor: Colors.green,
+      backgroundColor: Colors.green.shade50,
+      surfaceTintColor: Colors.green.shade100,
       child: Column(
         children: [
           UserAccountsDrawerHeader(
@@ -111,7 +111,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
             ),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.green.shade700, Colors.greenAccent.shade400],
+                colors: [Colors.green.shade500, Colors.green.shade200],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -163,24 +163,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   },
                 ),
                 _buildDrawerItem(
-                  Icons.map,
+                  Icons.location_on_outlined,
                   _getTranslatedText('AgriHealth Tracker'),
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => HeatmapPageMap()),
                   ),
                 ),
-                const Divider(thickness: 1, color: Colors.green),
-                _buildDrawerItem(
-                  Icons.settings,
-                  _getTranslatedText('settings'),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const LanguageSettings(),
-                    ),
-                  ),
-                ),
+                Divider(thickness: 1, color: Colors.grey.shade300),
                 _buildDrawerItem(
                   Icons.help_outline,
                   _getTranslatedText('help'),
@@ -208,12 +198,20 @@ class _CustomDrawerState extends State<CustomDrawer> {
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon, size: 26, color: Colors.black87),
+      leading: Icon(icon, size: 26, color: Colors.grey.shade800),
       title: Text(
         title,
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: Colors.grey.shade900,
+        ),
       ),
-      trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+      trailing: Icon(
+        Icons.arrow_forward_ios,
+        size: 16,
+        color: Colors.grey.shade600,
+      ),
       onTap: onTap,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       tileColor: Colors.white,

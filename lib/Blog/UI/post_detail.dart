@@ -1,12 +1,12 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sow_and_grow/Blog/UI/Blog_UI.dart';
+import 'package:sow_and_grow/Blog/Service/translation_service.dart';
 import 'package:sow_and_grow/Blog/Widgets/comment_dialog.dart';
+import 'package:sow_and_grow/Blog/Widgets/language_widgets.dart';
+import 'package:sow_and_grow/Blog/utility/language_constants.dart';
 import 'package:sow_and_grow/utils/Language/app_localizations.dart';
 import 'package:sow_and_grow/utils/Language/language_provider.dart';
 
@@ -29,22 +29,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
   String _currentLanguage = 'en'; // Default to English
   bool _isSpeaking = false;
   final FlutterTts _flutterTts = FlutterTts();
-
-  // Language selection options
-  final List<Map<String, String>> _languages = [
-    {'code': 'en', 'name': 'English'},
-    {'code': 'ta', 'name': 'தமிழ்'},
-    {'code': 'hi', 'name': 'हिन्दी'},
-    {'code': 'ml', 'name': 'മലയാളം'},
-  ];
-
-  // TTS language mapping
-  final Map<String, String> _ttsLanguageCodes = {
-    'en': 'en-US',
-    'ta': 'ta-IN',
-    'hi': 'hi-IN',
-    'ml': 'ml-IN',
-  };
 
   @override
   void initState() {
@@ -85,7 +69,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
     // Set the language for TTS based on current language selection
     await _flutterTts.setLanguage(
-      _ttsLanguageCodes[_currentLanguage] ?? 'en-US',
+      BlogLanguageConstants.ttsLanguageCodes[_currentLanguage] ?? 'en-US',
     );
 
     // Prepare the text to be read (title + content)
@@ -149,66 +133,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
     }
   }
 
-  // Function to translate text
-  Future<String> _translateText(String text, String targetLang) async {
-    if (text.isEmpty || targetLang == 'en') {
-      return text;
-    }
-
-    try {
-      // Split text into chunks of approximately 500 characters at sentence boundaries
-      List<String> chunks = [];
-      String currentChunk = '';
-
-      // Split by sentences (looking for . ! ? followed by space)
-      List<String> sentences = text.split(RegExp(r'(?<=[.!?])\s+'));
-
-      for (String sentence in sentences) {
-        if ((currentChunk + sentence).length > 500) {
-          chunks.add(currentChunk);
-          currentChunk = sentence;
-        } else {
-          currentChunk += (currentChunk.isEmpty ? '' : ' ') + sentence;
-        }
-      }
-      if (currentChunk.isNotEmpty) {
-        chunks.add(currentChunk);
-      }
-
-      // Translate each chunk
-      List<String> translatedChunks = [];
-      for (String chunk in chunks) {
-        // Make API call to MyMemory translation service
-        final url = Uri.parse(
-          'https://api.mymemory.translated.net/get?q=${Uri.encodeComponent(chunk)}&langpair=en|$targetLang',
-        );
-
-        final response = await http.get(url);
-
-        if (response.statusCode == 200) {
-          final data = json.decode(response.body);
-
-          if (data['responseStatus'] == 200 && data['responseData'] != null) {
-            translatedChunks.add(data['responseData']['translatedText']);
-          } else {
-            translatedChunks.add(chunk); // Keep original if translation fails
-          }
-        } else {
-          translatedChunks.add(chunk); // Keep original if request fails
-        }
-
-        // Add a small delay between requests to avoid rate limiting
-        await Future.delayed(Duration(milliseconds: 300));
-      }
-
-      // Combine translated chunks
-      return translatedChunks.join(' ');
-    } catch (e) {
-      print('Translation error: $e');
-      return text; // Return original text if translation fails
-    }
-  }
-
   // Function to translate post content
   Future<void> _translatePost(String langCode) async {
     if (langCode == 'en') {
@@ -226,14 +150,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
     });
 
     try {
-      // Translate title
-      String translatedTitle = await _translateText(
+      // Translate title and content using TranslationService
+      String translatedTitle = await TranslationService.translateText(
         post.originalTitle,
         langCode,
       );
 
-      // Translate content
-      String translatedContent = await _translateText(
+      String translatedContent = await TranslationService.translateText(
         post.originalContent,
         langCode,
       );
@@ -263,67 +186,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   // Show language selection dialog
   void _showLanguageDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            AppLocalizations.translate(
-              'selectLanguage',
-              Provider.of<LanguageProvider>(context).currentLanguage,
-            ),
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.green.shade800,
-            ),
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          content: Container(
-            width: double.minPositive,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: _languages.map((language) {
-                return ListTile(
-                  title: Text(
-                    language['name']!,
-                    style: TextStyle(
-                      fontWeight: _currentLanguage == language['code']
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                  ),
-                  leading: Radio<String>(
-                    value: language['code']!,
-                    groupValue: _currentLanguage,
-                    activeColor: Colors.green.shade800,
-                    onChanged: (String? value) {
-                      Navigator.pop(context);
-                      if (value != null && value != _currentLanguage) {
-                        _translatePost(value);
-                      }
-                    },
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(
-                AppLocalizations.translate(
-                  'cancel',
-                  Provider.of<LanguageProvider>(context).currentLanguage,
-                ),
-                style: TextStyle(color: Colors.green.shade800),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
+    LanguageSelectionDialog.show(
+      context,
+      currentLanguage: _currentLanguage,
+      onLanguageSelected: (String langCode) {
+        _translatePost(langCode);
       },
     );
   }
@@ -336,7 +203,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: Colors.green.shade800,
+        backgroundColor: Colors.green.shade300,
         title: Text(
           AppLocalizations.translate('AgriTalks', currentLanguage),
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -344,27 +211,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         elevation: 0,
       ),
       body: _translating
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Colors.green.shade800,
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Text(
-                    'Translating content...',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.green.shade800,
-                    ),
-                  ),
-                ],
-              ),
-            )
+          ? TranslationLoadingWidget()
           : SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -509,7 +356,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.green.shade900,
+                                color: Colors.green.shade700,
                               ),
                             ),
                           ),
@@ -552,7 +399,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                     _isSpeaking
                                         ? Icons.stop_circle
                                         : Icons.volume_up,
-                                    color: Colors.green.shade800,
+                                    color: Colors.green.shade600,
                                     size: 24,
                                   ),
                                   const SizedBox(width: 8),
@@ -561,7 +408,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                         ? 'Stop Reading'
                                         : 'Listen to Post',
                                     style: TextStyle(
-                                      color: Colors.green.shade800,
+                                      color: Colors.green.shade600,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),

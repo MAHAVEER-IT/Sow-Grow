@@ -26,7 +26,6 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
 
   late stt.SpeechToText _speech;
   bool _isListening = false;
-  double _confidence = 1.0;
   String _selectedLanguage = 'ta-IN';
 
   final Map<String, String> _languageMap = {
@@ -36,13 +35,15 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
     'English': 'en-US',
   };
 
-  // Define our multi-green color palette
-  final Color _darkGreen = Color(0xFF1B5E20);
-  final Color _mediumGreen = Color(0xFF2E7D32);
-  final Color _lightGreen = Color(0xFF4CAF50);
-  final Color _paleGreen = Color(0xFF8BC34A);
-  final Color _mintGreen = Color(0xFFA5D6A7);
-  final Color _accentGreen = Color(0xFF00C853);
+  // Define our light color palette with dark text
+  final Color _backgroundLight = Colors.green.shade50;
+  final Color _backgroundMedium = Colors.green.shade100;
+  final Color _cardBackground = Colors.white;
+  final Color _darkText = Colors.green.shade800;
+  final Color _mediumText = Colors.green.shade700;
+  final Color _lightText = Colors.grey.shade600;
+  final Color _accentColor = Colors.green.shade400;
+  final Color _borderColor = Colors.green.shade200;
 
   @override
   void initState() {
@@ -62,9 +63,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
       setState(() => _imageError = null);
 
       final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(
-        source: ImageSource.gallery,
-      );
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 
       if (image != null) {
         final file = File(image.path);
@@ -114,9 +113,6 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
               _contentController.selection = TextSelection.fromPosition(
                 TextPosition(offset: _contentController.text.length),
               );
-              if (val.hasConfidenceRating && val.confidence > 0) {
-                _confidence = val.confidence;
-              }
             });
           },
         );
@@ -147,8 +143,8 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
       if (response['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('post created successfully'),
-            backgroundColor: _darkGreen,
+            content: Text('Post created successfully'),
+            backgroundColor: Colors.green.shade600,
           ),
         );
         Navigator.pop(context, true);
@@ -181,22 +177,15 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
         title: Text(
           "Share AgriTalk",
           style: TextStyle(
-            color: Colors.white,
+            color: _darkText,
             fontWeight: FontWeight.bold,
             fontSize: 26,
             letterSpacing: 1.2,
-            shadows: [
-              Shadow(
-                blurRadius: 3.0,
-                color: Colors.black.withOpacity(0.3),
-                offset: Offset(1.0, 1.0),
-              ),
-            ],
           ),
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: _darkText),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -205,11 +194,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              _darkGreen,
-              _mediumGreen,
-              _lightGreen,
-            ],
+            colors: [_backgroundLight, _backgroundMedium, Colors.white],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -236,9 +221,9 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        "Share Your knowledge",
+                        "Share Your Knowledge",
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
+                          color: _mediumText,
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
                         ),
@@ -247,8 +232,9 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                       SizedBox(height: 24),
                       // Cover Image Card
                       Card(
-                        elevation: 8,
-                        shadowColor: _darkGreen.withOpacity(0.4),
+                        elevation: 4,
+                        color: _cardBackground,
+                        shadowColor: Colors.green.shade200.withOpacity(0.5),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -265,11 +251,17 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                                   gradient: _imageFile == null
                                       ? LinearGradient(
                                           colors: [
-                                            _mintGreen,
-                                            _paleGreen.withOpacity(0.7),
+                                            _backgroundLight,
+                                            _backgroundMedium,
                                           ],
                                           begin: Alignment.topLeft,
                                           end: Alignment.bottomRight,
+                                        )
+                                      : null,
+                                  border: _imageFile == null
+                                      ? Border.all(
+                                          color: _borderColor,
+                                          width: 2,
                                         )
                                       : null,
                                 ),
@@ -278,8 +270,9 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                                         fit: StackFit.expand,
                                         children: [
                                           ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(20),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
                                             child: Image.file(
                                               _imageFile!,
                                               fit: BoxFit.cover,
@@ -307,10 +300,13 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                                             left: 16,
                                             child: Container(
                                               padding: EdgeInsets.symmetric(
-                                                  horizontal: 12, vertical: 6),
+                                                horizontal: 12,
+                                                vertical: 6,
+                                              ),
                                               decoration: BoxDecoration(
-                                                color: Colors.white
-                                                    .withOpacity(0.8),
+                                                color: Colors.white.withOpacity(
+                                                  0.9,
+                                                ),
                                                 borderRadius:
                                                     BorderRadius.circular(20),
                                               ),
@@ -320,13 +316,13 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                                                   Icon(
                                                     Icons.edit,
                                                     size: 16,
-                                                    color: _darkGreen,
+                                                    color: _accentColor,
                                                   ),
                                                   SizedBox(width: 4),
                                                   Text(
                                                     'Change Image',
                                                     style: TextStyle(
-                                                      color: _darkGreen,
+                                                      color: _darkText,
                                                       fontWeight:
                                                           FontWeight.w600,
                                                       fontSize: 12,
@@ -348,13 +344,13 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                                                 padding: EdgeInsets.all(8),
                                                 decoration: BoxDecoration(
                                                   color: Colors.white
-                                                      .withOpacity(0.8),
+                                                      .withOpacity(0.9),
                                                   shape: BoxShape.circle,
                                                 ),
                                                 child: Icon(
                                                   Icons.close_rounded,
                                                   size: 20,
-                                                  color: _darkGreen,
+                                                  color: _accentColor,
                                                 ),
                                               ),
                                             ),
@@ -369,19 +365,19 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                                             padding: EdgeInsets.all(20),
                                             decoration: BoxDecoration(
                                               shape: BoxShape.circle,
-                                              color: _darkGreen.withOpacity(0.2),
+                                              color: _backgroundMedium,
                                             ),
                                             child: Icon(
                                               Icons.add_photo_alternate_rounded,
                                               size: 50,
-                                              color: _darkGreen,
+                                              color: _accentColor,
                                             ),
                                           ),
                                           SizedBox(height: 12),
                                           Text(
                                             'Add Cover Image',
                                             style: TextStyle(
-                                              color: _darkGreen,
+                                              color: _darkText,
                                               fontSize: 18,
                                               fontWeight: FontWeight.w600,
                                             ),
@@ -390,7 +386,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                                           Text(
                                             'Make your knowledge stand out',
                                             style: TextStyle(
-                                              color: _mediumGreen,
+                                              color: _mediumText,
                                               fontSize: 14,
                                             ),
                                           ),
@@ -403,7 +399,9 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                                 padding: EdgeInsets.all(12),
                                 child: Container(
                                   padding: EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.red.shade50,
                                     borderRadius: BorderRadius.circular(8),
@@ -439,35 +437,39 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                       SizedBox(height: 24),
                       // Title Card
                       Card(
-                        elevation: 6,
-                        shadowColor: _darkGreen.withOpacity(0.3),
+                        elevation: 3,
+                        color: _cardBackground,
+                        shadowColor: Colors.green.shade200.withOpacity(0.5),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Padding(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 6,
+                          ),
                           child: TextFormField(
                             controller: _titleController,
                             enabled: !_isLoading,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
-                              color: _darkGreen,
+                              color: _darkText,
                             ),
                             decoration: InputDecoration(
                               hintText: 'Title Your AgriTalk',
                               hintStyle: TextStyle(
-                                color: _mediumGreen.withOpacity(0.6),
+                                color: _lightText,
                                 fontWeight: FontWeight.w500,
                               ),
                               prefixIcon: Icon(
                                 Icons.title,
-                                color: _mediumGreen,
+                                color: _accentColor,
                               ),
                               border: InputBorder.none,
-                              contentPadding:
-                                  EdgeInsets.symmetric(vertical: 16),
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: 16,
+                              ),
                             ),
                             validator: (value) {
                               if (value?.isEmpty ?? true) {
@@ -484,8 +486,9 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                       SizedBox(height: 24),
                       // Content Card
                       Card(
-                        elevation: 6,
-                        shadowColor: _darkGreen.withOpacity(0.3),
+                        elevation: 3,
+                        color: _cardBackground,
+                        shadowColor: Colors.green.shade200.withOpacity(0.5),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -498,7 +501,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                                 children: [
                                   Icon(
                                     Icons.edit_note_rounded,
-                                    color: _mediumGreen,
+                                    color: _accentColor,
                                   ),
                                   SizedBox(width: 10),
                                   Text(
@@ -506,15 +509,12 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
-                                      color: _darkGreen,
+                                      color: _darkText,
                                     ),
                                   ),
                                 ],
                               ),
-                              Divider(
-                                height: 24,
-                                color: _paleGreen.withOpacity(0.5),
-                              ),
+                              Divider(height: 24, color: _borderColor),
                               TextFormField(
                                 controller: _contentController,
                                 enabled: !_isLoading,
@@ -522,14 +522,12 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   height: 1.6,
-                                  color: _darkGreen,
+                                  color: _darkText,
                                 ),
                                 decoration: InputDecoration(
                                   hintText:
                                       'Share your thoughts, ideas, and stories here...',
-                                  hintStyle: TextStyle(
-                                    color: _mediumGreen.withOpacity(0.6),
-                                  ),
+                                  hintStyle: TextStyle(color: _lightText),
                                   border: InputBorder.none,
                                   isDense: true,
                                   contentPadding: EdgeInsets.zero,
@@ -551,10 +549,10 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                               Container(
                                 padding: EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: _mintGreen.withOpacity(0.3),
+                                  color: _backgroundLight,
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: _paleGreen.withOpacity(0.5),
+                                    color: _borderColor,
                                     width: 1,
                                   ),
                                 ),
@@ -563,21 +561,25 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                                     Expanded(
                                       child: Container(
                                         padding: EdgeInsets.symmetric(
-                                            horizontal: 12),
+                                          horizontal: 12,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                           border: Border.all(
-                                            color: _paleGreen,
+                                            color: _borderColor,
                                           ),
                                         ),
                                         child: DropdownButtonHideUnderline(
                                           child: DropdownButton<String>(
                                             value: _languageMap.entries
-                                                .firstWhere((e) =>
-                                                    e.value ==
-                                                    _selectedLanguage)
+                                                .firstWhere(
+                                                  (e) =>
+                                                      e.value ==
+                                                      _selectedLanguage,
+                                                )
                                                 .key,
                                             onChanged: (String? newValue) {
                                               setState(() {
@@ -587,26 +589,24 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                                             },
                                             icon: Icon(
                                               Icons.keyboard_arrow_down_rounded,
-                                              color: _mediumGreen,
+                                              color: _accentColor,
                                             ),
                                             items: _languageMap.keys
                                                 .map<DropdownMenuItem<String>>(
-                                                    (String lang) =>
-                                                        DropdownMenuItem<
-                                                            String>(
-                                                          value: lang,
-                                                          child: Text(
-                                                            lang,
-                                                            style: TextStyle(
-                                                              fontSize: 14,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w500,
-                                                              color:
-                                                                  _darkGreen,
-                                                            ),
+                                                  (String lang) =>
+                                                      DropdownMenuItem<String>(
+                                                        value: lang,
+                                                        child: Text(
+                                                          lang,
+                                                          style: TextStyle(
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                            color: _darkText,
                                                           ),
-                                                        ))
+                                                        ),
+                                                      ),
+                                                )
                                                 .toList(),
                                           ),
                                         ),
@@ -615,8 +615,8 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                                     SizedBox(width: 12),
                                     Material(
                                       color: _isListening
-                                          ? _accentGreen
-                                          : _mediumGreen,
+                                          ? Colors.green.shade500
+                                          : _accentColor,
                                       borderRadius: BorderRadius.circular(12),
                                       elevation: 2,
                                       child: InkWell(
@@ -660,14 +660,14 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                       ElevatedButton(
                         onPressed: _isLoading ? null : _handleSubmit,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _accentGreen,
+                          backgroundColor: _accentColor,
                           foregroundColor: Colors.white,
                           padding: EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
                           elevation: 4,
-                          shadowColor: _accentGreen.withOpacity(0.5),
+                          shadowColor: Colors.green.shade300.withOpacity(0.5),
                           disabledBackgroundColor: Colors.grey.shade400,
                         ),
                         child: Row(
@@ -716,11 +716,11 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                     child: Container(
                       padding: EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: _darkGreen.withOpacity(0.2),
+                            color: Colors.green.shade200.withOpacity(0.5),
                             blurRadius: 16,
                             spreadRadius: 4,
                           ),
@@ -733,7 +733,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                             width: 50,
                             height: 50,
                             child: CircularProgressIndicator(
-                              color: _mediumGreen,
+                              color: _accentColor,
                               strokeWidth: 5,
                             ),
                           ),
@@ -743,7 +743,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: _darkGreen,
+                              color: _darkText,
                             ),
                           ),
                         ],

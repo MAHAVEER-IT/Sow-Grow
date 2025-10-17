@@ -47,12 +47,14 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
   }
 
   void _initSocket() {
-    socket =
-        IO.io('https://farmcare-backend-new.onrender.com', <String, dynamic>{
-      'transports': ['websocket'],
-      'autoConnect': false,
-      'forceNew': true,
-    });
+    socket = IO.io(
+      'https://farmcare-backend-new.onrender.com',
+      <String, dynamic>{
+        'transports': ['websocket'],
+        'autoConnect': false,
+        'forceNew': true,
+      },
+    );
 
     socket.onConnect((_) {
       print('Socket connected');
@@ -79,14 +81,17 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
       print('Received channel message: $data');
       if (mounted) {
         setState(() {
-          _messages.add(ChannelMessage(
-            id: data['_id'] ?? DateTime.now().toString(),
-            channelId: widget.channelId,
-            senderId: data['senderId'],
-            content: data['content'],
-            timestamp: DateTime.parse(
-                data['timestamp'] ?? DateTime.now().toIso8601String()),
-          ));
+          _messages.add(
+            ChannelMessage(
+              id: data['_id'] ?? DateTime.now().toString(),
+              channelId: widget.channelId,
+              senderId: data['senderId'],
+              content: data['content'],
+              timestamp: DateTime.parse(
+                data['timestamp'] ?? DateTime.now().toIso8601String(),
+              ),
+            ),
+          );
         });
         _scrollToBottom();
       }
@@ -110,9 +115,9 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
       print('Error loading channel messages: $e');
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load messages: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load messages: $e')));
       }
     }
   }
@@ -137,7 +142,8 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
       if (!_isConnected) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Connection lost. Trying to reconnect...')),
+            content: Text('Connection lost. Trying to reconnect...'),
+          ),
         );
         socket.connect();
         return;
@@ -150,9 +156,9 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
       });
     } catch (e) {
       print('Error sending channel message: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send message: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
     }
   }
 
@@ -162,6 +168,7 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
+      backgroundColor: Colors.white,
       builder: (context) => Container(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -170,14 +177,13 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  backgroundColor: Colors.green.shade50,
-                  radius: 30,
-                  child: Icon(
-                    Icons.group,
-                    size: 32,
-                    color: Colors.green.shade700,
+                Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Color(0xFFE9F5F0),
+                    shape: BoxShape.circle,
                   ),
+                  child: Icon(Icons.group, size: 32, color: Color(0xFF48BB78)),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -189,6 +195,7 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
+                          color: Color(0xFF2D3748),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -196,7 +203,7 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
                         'Channel ID: ${widget.channelId}',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey.shade600,
+                          color: Color(0xFF718096),
                         ),
                       ),
                     ],
@@ -210,7 +217,7 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade800,
+                color: Color(0xFF2D3748),
               ),
             ),
             const SizedBox(height: 8),
@@ -224,47 +231,64 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFF5F7FA),
       appBar: AppBar(
-        elevation: 1,
+        elevation: 0,
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
         title: Row(
           children: [
-            CircleAvatar(
-              backgroundColor: Colors.green.shade50,
-              child: Icon(
-                Icons.group,
-                color: Colors.green.shade700,
+            Container(
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Color(0xFFE9F5F0),
+                shape: BoxShape.circle,
               ),
+              child: Icon(Icons.group, color: Color(0xFF48BB78), size: 24),
             ),
             const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.channelName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.channelName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2D3748),
+                    ),
                   ),
-                ),
-                Text(
-                  _isConnected ? 'Online' : 'Offline',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: _isConnected
-                        ? Colors.green.shade700
-                        : Colors.grey.shade600,
+                  Row(
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: _isConnected
+                              ? Color(0xFF48BB78)
+                              : Colors.grey.shade400,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        _isConnected ? 'Online' : 'Offline',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF718096),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
         actions: [
           if (!_isConnected)
             IconButton(
-              icon: const Icon(Icons.refresh),
+              icon: const Icon(Icons.refresh, color: Color(0xFF48BB78)),
               onPressed: () {
                 socket.connect();
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -273,22 +297,21 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
               },
             ),
           IconButton(
-            icon: const Icon(Icons.info_outline),
+            icon: const Icon(Icons.info_outline, color: Color(0xFF48BB78)),
             onPressed: _showChannelInfo,
           ),
         ],
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Color(0xFF2D3748)),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: Container(
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          image: DecorationImage(
-            image: const AssetImage('assets/chat_bg.png'),
-            fit: BoxFit.cover,
-            opacity: 0.1,
-            colorFilter: ColorFilter.mode(
-              Colors.green.shade50,
-              BlendMode.lighten,
-            ),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFF5F7FA), Color(0xFFE9F5F0)],
           ),
         ),
         child: Column(
@@ -297,7 +320,8 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
               child: _isLoading
                   ? Center(
                       child: CircularProgressIndicator(
-                        color: Colors.green.shade300,
+                        color: Color(0xFF48BB78),
+                        strokeWidth: 3,
                       ),
                     )
                   : ListView.builder(
@@ -307,7 +331,8 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
                       itemBuilder: (context, index) {
                         final message = _messages[index];
                         final isMe = message.senderId == widget.currentUserId;
-                        final showDate = index == 0 ||
+                        final showDate =
+                            index == 0 ||
                             !_isSameDay(
                               _messages[index - 1].timestamp,
                               message.timestamp,
@@ -319,21 +344,25 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
                               const SizedBox(height: 16),
                               Container(
                                 width: double.infinity,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
                                 child: Center(
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 16,
-                                      vertical: 6,
+                                      vertical: 8,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.green.shade50,
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: Colors.green.shade200,
-                                        width: 1,
-                                      ),
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.05),
+                                          blurRadius: 4,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -341,15 +370,16 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
                                         Icon(
                                           Icons.calendar_today,
                                           size: 14,
-                                          color: Colors.green.shade700,
+                                          color: Color(0xFF718096),
                                         ),
-                                        const SizedBox(width: 6),
+                                        const SizedBox(width: 8),
                                         Text(
                                           _formatMessageDate(message.timestamp),
                                           style: TextStyle(
-                                            fontSize: 13,
-                                            color: Colors.green.shade700,
-                                            fontWeight: FontWeight.w500,
+                                            fontSize: 12,
+                                            color: Color(0xFF718096),
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 0.5,
                                           ),
                                         ),
                                       ],
@@ -373,24 +403,21 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
                                   right: isMe ? 0 : 50,
                                   bottom: 8,
                                 ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 10,
-                                ),
+                                padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: isMe
-                                      ? Colors.green.shade500
+                                      ? Color(0xFF48BB78)
                                       : Colors.white,
                                   borderRadius: BorderRadius.only(
-                                    topLeft: const Radius.circular(16),
-                                    topRight: const Radius.circular(16),
-                                    bottomLeft: Radius.circular(isMe ? 16 : 4),
-                                    bottomRight: Radius.circular(isMe ? 4 : 16),
+                                    topLeft: const Radius.circular(18),
+                                    topRight: const Radius.circular(18),
+                                    bottomLeft: Radius.circular(isMe ? 18 : 4),
+                                    bottomRight: Radius.circular(isMe ? 4 : 18),
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.05),
-                                      blurRadius: 4,
+                                      color: Colors.black.withOpacity(0.08),
+                                      blurRadius: 8,
                                       offset: const Offset(0, 2),
                                     ),
                                   ],
@@ -400,14 +427,15 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
                                   children: [
                                     if (!isMe)
                                       Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 4),
+                                        padding: const EdgeInsets.only(
+                                          bottom: 6,
+                                        ),
                                         child: Text(
                                           message.senderId,
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color: Colors.grey.shade600,
-                                            fontWeight: FontWeight.w500,
+                                            color: Color(0xFF48BB78),
+                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
                                       ),
@@ -416,20 +444,21 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
                                       style: TextStyle(
                                         color: isMe
                                             ? Colors.white
-                                            : Colors.black87,
+                                            : Color(0xFF2D3748),
                                         fontSize: 15,
-                                        height: 1.3,
+                                        height: 1.4,
                                       ),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      DateFormat('HH:mm')
-                                          .format(message.timestamp),
+                                      DateFormat(
+                                        'HH:mm',
+                                      ).format(message.timestamp),
                                       style: TextStyle(
-                                        fontSize: 10,
+                                        fontSize: 11,
                                         color: isMe
-                                            ? Colors.white.withOpacity(0.7)
-                                            : Colors.grey.shade600,
+                                            ? Colors.white70
+                                            : Color(0xFF718096),
                                       ),
                                     ),
                                   ],
@@ -442,14 +471,14 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
                     ),
             ),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withOpacity(0.08),
                     blurRadius: 10,
-                    offset: const Offset(0, -5),
+                    offset: const Offset(0, -2),
                   ),
                 ],
               ),
@@ -458,10 +487,7 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     IconButton(
-                      icon: Icon(
-                        Icons.attach_file,
-                        color: Colors.grey.shade600,
-                      ),
+                      icon: Icon(Icons.attach_file, color: Color(0xFF48BB78)),
                       onPressed: () {
                         // TODO: Implement file attachment
                       },
@@ -469,19 +495,28 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
                     Expanded(
                       child: Container(
                         constraints: const BoxConstraints(maxHeight: 100),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
+                          color: Color(0xFFF7FAFC),
                           borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: Color(0xFFE2E8F0),
+                            width: 1,
+                          ),
                         ),
                         child: TextField(
                           controller: _messageController,
                           maxLines: null,
                           textCapitalization: TextCapitalization.sentences,
-                          style: const TextStyle(fontSize: 16),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Color(0xFF2D3748),
+                          ),
                           decoration: InputDecoration(
                             hintText: 'Type a message...',
-                            hintStyle: TextStyle(color: Colors.grey.shade600),
+                            hintStyle: TextStyle(
+                              color: Color(0xFFA0AEC0),
+                              fontSize: 15,
+                            ),
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 20,
@@ -494,11 +529,23 @@ class _ChannelChatScreenState extends State<ChannelChatScreen> {
                     const SizedBox(width: 8),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.green.shade500,
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF48BB78), Color(0xFF38A169)],
+                        ),
                         shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0xFF48BB78).withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.send, color: Colors.white),
+                        icon: const Icon(
+                          Icons.send_rounded,
+                          color: Colors.white,
+                        ),
                         onPressed: _sendMessage,
                       ),
                     ),

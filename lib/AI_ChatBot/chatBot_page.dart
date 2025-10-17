@@ -43,14 +43,19 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   bool _isSpeaking = false;
   String? _currentlySpeakingMessageText;
 
-  // Enhanced color scheme
-  final Color _primaryGreen = const Color(0xFF4CAF50);
-  final Color _darkGreen = const Color(0xFF2E7D32);
-  final Color _lightGreen = const Color(0xFFAED581);
-  final Color _earthBrown = const Color(0xFF8D6E63);
-  final Color _creamBackground = const Color(0xFFFFF8E1);
-  final Color _messageUserBubble = const Color(0xFF43A047);
-  final Color _messageAIBubble = const Color(0xFFFFFFFF);
+  // Enhanced color scheme - Light theme with dark text
+  final Color _darkGreen = const Color(
+    0xFF1B5E20,
+  ); // Even darker for text/icons
+  final Color _lightGreen = const Color(0xFFE8F5E9); // Very light green
+  final Color _earthBrown = const Color(0xFF4E342E); // Darker brown for icons
+  final Color _creamBackground = const Color(
+    0xFFFAFAFA,
+  ); // Light gray background
+  final Color _messageUserBubble = const Color(
+    0xFFE8F5E9,
+  ); // Light green for user
+  final Color _messageAIBubble = const Color(0xFFFFFFFF); // White for AI
   final Color _shadowColor = Colors.black12;
 
   late stt.SpeechToText _speech;
@@ -88,8 +93,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   void _initializeTts() async {
-    await _flutterTts
-        .setLanguage(_ttsLanguageMap[_selectedLanguage] ?? 'en-US');
+    await _flutterTts.setLanguage(
+      _ttsLanguageMap[_selectedLanguage] ?? 'en-US',
+    );
 
     _flutterTts.setCompletionHandler(() {
       setState(() {
@@ -108,11 +114,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   void _addWelcomeMessage() {
     setState(() {
-      _messages.add(ChatMessage(
-        text:
-            "👋 Welcome to FarmHelper! Ask me anything about crops, weather, farming techniques, or upload a photo of your plants for analysis.",
-        isUser: false,
-      ));
+      _messages.add(
+        ChatMessage(
+          text:
+              "👋 Welcome to FarmHelper! Ask me anything about crops, weather, farming techniques, or upload a photo of your plants for analysis.",
+          isUser: false,
+        ),
+      );
     });
   }
 
@@ -127,14 +135,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   void _initializeGemini() {
     const apiKey = 'AIzaSyDu2g3aU4671bDMCWRX_8fSw_PyFxfcazQ';
 
-    _model = GenerativeModel(
-      model: 'gemini-2.0-flash',
-      apiKey: apiKey,
-    );
-    _visionModel = GenerativeModel(
-      model: 'gemini-2.0-flash',
-      apiKey: apiKey,
-    );
+    _model = GenerativeModel(model: 'gemini-2.0-flash', apiKey: apiKey);
+    _visionModel = GenerativeModel(model: 'gemini-2.0-flash', apiKey: apiKey);
     _chatSession = _model.startChat();
   }
 
@@ -167,8 +169,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       _currentlySpeakingMessageText = text;
     });
 
-    await _flutterTts
-        .setLanguage(_ttsLanguageMap[_selectedLanguage] ?? 'en-US');
+    await _flutterTts.setLanguage(
+      _ttsLanguageMap[_selectedLanguage] ?? 'en-US',
+    );
     await _flutterTts.setPitch(1.0);
     await _flutterTts.speak(text);
   }
@@ -180,7 +183,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     // Add user message
     setState(() {
       _messages.add(
-          ChatMessage(text: text, isUser: true, imageFile: _selectedImage));
+        ChatMessage(text: text, isUser: true, imageFile: _selectedImage),
+      );
       _isLoading = true;
     });
 
@@ -191,10 +195,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       if (_selectedImage != null) {
         final bytes = await _selectedImage!.readAsBytes();
         final content = [
-          Content.multi([
-            TextPart(text),
-            DataPart('image/jpeg', bytes),
-          ])
+          Content.multi([TextPart(text), DataPart('image/jpeg', bytes)]),
         ];
         final result = await _visionModel.generateContent(content);
         response = result.text ?? 'No response generated';
@@ -242,14 +243,22 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 ),
               ),
               ListTile(
-                leading:
-                    const Icon(Icons.photo_library, color: Color(0xFF4CAF50)),
-                title: const Text('Photo Gallery'),
+                leading: const Icon(
+                  Icons.photo_library,
+                  color: Color(0xFF1B5E20),
+                ),
+                title: const Text(
+                  'Photo Gallery',
+                  style: TextStyle(color: Colors.black87),
+                ),
                 onTap: () => Navigator.pop(context, ImageSource.gallery),
               ),
               ListTile(
-                leading: const Icon(Icons.camera_alt, color: Color(0xFF4CAF50)),
-                title: const Text('Camera'),
+                leading: const Icon(Icons.camera_alt, color: Color(0xFF1B5E20)),
+                title: const Text(
+                  'Camera',
+                  style: TextStyle(color: Colors.black87),
+                ),
                 onTap: () => Navigator.pop(context, ImageSource.camera),
               ),
             ],
@@ -301,9 +310,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           children: [
             Icon(Icons.language, color: _darkGreen),
             const SizedBox(width: 10),
-            const Text('Select Language'),
+            const Text(
+              'Select Language',
+              style: TextStyle(color: Colors.black87),
+            ),
           ],
         ),
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -312,6 +325,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               title: Text(
                 entry.key,
                 style: TextStyle(
+                  color: Colors.black87,
                   fontWeight: _selectedLanguage == entry.value
                       ? FontWeight.bold
                       : FontWeight.normal,
@@ -375,19 +389,24 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             IconButton(
-              icon:
-                  Icon(Icons.add_photo_alternate, color: _earthBrown, size: 24),
+              icon: Icon(
+                Icons.add_photo_alternate,
+                color: _earthBrown,
+                size: 24,
+              ),
               onPressed: _pickImage,
               tooltip: 'Add Image',
             ),
             Expanded(
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: Colors.grey.shade50,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: _lightGreen),
+                  border: Border.all(color: _darkGreen),
                 ),
                 child: TextField(
                   controller: _textController,
@@ -397,6 +416,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     hintStyle: TextStyle(color: Colors.grey.shade500),
                     contentPadding: const EdgeInsets.symmetric(vertical: 8.0),
                   ),
+                  style: const TextStyle(color: Colors.black87),
                   maxLines: null,
                   textInputAction: TextInputAction.send,
                   onSubmitted: _isLoading ? null : _handleSubmit,
@@ -405,9 +425,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ),
             const SizedBox(width: 8),
             FloatingActionButton(
-              onPressed:
-                  _isLoading ? null : () => _handleSubmit(_textController.text),
-              backgroundColor: _primaryGreen,
+              onPressed: _isLoading
+                  ? null
+                  : () => _handleSubmit(_textController.text),
+              backgroundColor: _darkGreen,
               elevation: 2,
               mini: true,
               child: const Icon(Icons.send, color: Colors.white, size: 20),
@@ -429,8 +450,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
       child: Column(
-        crossAxisAlignment:
-            message.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: message.isUser
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -444,26 +466,28 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   child: Container(
                     margin: const EdgeInsets.only(right: 8.0),
                     child: CircleAvatar(
-                      backgroundColor: _darkGreen,
-                      child:
-                          const Icon(Icons.eco, color: Colors.white, size: 18),
+                      backgroundColor: _lightGreen,
+                      child: Icon(Icons.eco, color: _darkGreen, size: 18),
                     ),
                   ),
                 ),
               Flexible(
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 12.0),
+                    horizontal: 16.0,
+                    vertical: 12.0,
+                  ),
                   decoration: BoxDecoration(
-                    color:
-                        message.isUser ? _messageUserBubble : _messageAIBubble,
+                    color: message.isUser
+                        ? _messageUserBubble
+                        : _messageAIBubble,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
                         offset: const Offset(0, 2),
                         blurRadius: 4.0,
                         color: _shadowColor,
-                      )
+                      ),
                     ],
                   ),
                   child: Column(
@@ -486,7 +510,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         message.text,
                         style: TextStyle(
                           fontSize: 16,
-                          color: message.isUser ? Colors.white : Colors.black87,
+                          color: message.isUser
+                              ? Colors.black87
+                              : Colors.black87,
                           height: 1.4,
                         ),
                       ),
@@ -508,7 +534,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                                   ? Icons.stop
                                   : Icons.volume_up,
                               size: 18,
-                              color: message.isUser ? Colors.white : _darkGreen,
+                              color: _darkGreen,
                             ),
                           ),
                         ),
@@ -521,9 +547,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 Container(
                   margin: const EdgeInsets.only(left: 8.0),
                   child: CircleAvatar(
-                    backgroundColor: _earthBrown,
-                    child:
-                        const Icon(Icons.person, color: Colors.white, size: 18),
+                    backgroundColor: _lightGreen,
+                    child: Icon(Icons.person, color: _darkGreen, size: 18),
                   ),
                 ),
             ],
@@ -533,10 +558,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               padding: const EdgeInsets.only(top: 4.0, left: 4.0, right: 4.0),
               child: Text(
                 _formatTime(message.timestamp),
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
               ),
             ),
         ],
@@ -554,10 +576,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: Text(
               '${date.day}/${date.month}/${date.year}',
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 12,
-              ),
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
             ),
           ),
           Expanded(child: Divider(color: Colors.grey.shade300)),
@@ -572,14 +591,18 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     for (int i = 0; i < _messages.length; i++) {
       final message = _messages[i];
-      final bool showTimestamp = i == _messages.length - 1 ||
+      final bool showTimestamp =
+          i == _messages.length - 1 ||
           _messages[i + 1].isUser != message.isUser ||
           _messages[i + 1].timestamp.difference(message.timestamp).inMinutes >
               2;
 
       // Check if we need a date separator
-      final messageDate = DateTime(message.timestamp.year,
-          message.timestamp.month, message.timestamp.day);
+      final messageDate = DateTime(
+        message.timestamp.year,
+        message.timestamp.month,
+        message.timestamp.day,
+      );
 
       if (lastDate == null || messageDate != lastDate) {
         widgets.add(_buildDateSeparator(messageDate));
@@ -598,29 +621,33 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       appBar: AppBar(
         title: const Row(
           children: [
-            Icon(Icons.eco, size: 24),
+            Icon(Icons.eco, size: 24, color: Colors.white),
             SizedBox(width: 10),
             Text(
               'FarmHelper',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.5,
+                color: Colors.white,
               ),
             ),
           ],
         ),
-        backgroundColor: _darkGreen,
+        backgroundColor: Colors.green.shade300,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
-            icon: const Icon(Icons.help_outline),
+            icon: const Icon(Icons.help_outline, color: Colors.white),
             onPressed: () {
               setState(() {
-                _messages.add(ChatMessage(
-                  text:
-                      "How can I help you with farming today? You can ask about:\n\n• Plant diseases and pest identification\n• Crop recommendations\n• Weather guidance\n• Sustainable farming practices\n• Local farming techniques",
-                  isUser: false,
-                ));
+                _messages.add(
+                  ChatMessage(
+                    text:
+                        "How can I help you with farming today? You can ask about:\n\n• Plant diseases and pest identification\n• Crop recommendations\n• Weather guidance\n• Sustainable farming practices\n• Local farming techniques",
+                    isUser: false,
+                  ),
+                );
               });
               _scrollToBottom();
             },
@@ -631,7 +658,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         decoration: BoxDecoration(
           image: const DecorationImage(
             image: NetworkImage(
-                'https://www.transparenttextures.com/patterns/cream-paper.png'),
+              'https://www.transparenttextures.com/patterns/cream-paper.png',
+            ),
             repeat: ImageRepeat.repeat,
             opacity: 0.15,
           ),
@@ -683,11 +711,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   Container(
                     padding: const EdgeInsets.all(8.0),
                     margin: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 8.0),
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
                     height: 120,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      border: Border.all(color: _primaryGreen, width: 2),
+                      border: Border.all(color: _darkGreen, width: 2),
                       borderRadius: BorderRadius.circular(12),
                       color: Colors.white,
                     ),
@@ -712,8 +742,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                             ),
                             child: IconButton(
                               iconSize: 20,
-                              icon:
-                                  const Icon(Icons.close, color: Colors.white),
+                              icon: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                              ),
                               onPressed: () =>
                                   setState(() => _selectedImage = null),
                             ),
@@ -748,8 +780,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: _isListening ? Colors.red : _darkGreen,
+                      color: _isListening ? Colors.red : Colors.white,
                       borderRadius: BorderRadius.circular(30),
+                      border: Border.all(color: _darkGreen, width: 2),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -757,15 +790,17 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         IconButton(
                           icon: Icon(
                             _isListening ? Icons.mic : Icons.mic_none,
-                            color: Colors.white,
+                            color: _isListening ? Colors.white : _darkGreen,
                           ),
                           onPressed: _listen,
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: _lightGreen,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -777,9 +812,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.keyboard_arrow_down,
-                            color: Colors.white,
+                            color: _isListening ? Colors.white : _darkGreen,
                           ),
                           onPressed: _showLanguagePopup,
                         ),

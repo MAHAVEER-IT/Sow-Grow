@@ -28,12 +28,12 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
   String? _replyingToId;
   String _replyingToAuthor = '';
 
-  // Green color palette
-  final Color primaryGreen = Color(0xFF2E7D32);    // Dark green
-  final Color lightGreen = Color(0xFFAED581);      // Light green
-  final Color accentGreen = Color(0xFF00C853);     // Accent green
-  final Color backgroundGreen = Color(0xFFE8F5E9); // Very light green background
-  final Color midGreen = Color(0xFF66BB6A);        // Medium green
+  // Lighter green color palette
+  final Color primaryGreen = Colors.green.shade400;
+  final Color lightGreen = Colors.green.shade200;
+  final Color accentGreen = Colors.green.shade400;
+  final Color backgroundGreen = Colors.green.shade50;
+  final Color midGreen = Colors.green.shade300;
 
   @override
   void initState() {
@@ -100,9 +100,17 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('Error', style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold)),
+            title: Text(
+              'Error',
+              style: TextStyle(
+                color: primaryGreen,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             content: Text(errorMessage),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             backgroundColor: Colors.white,
             actions: [
               TextButton(
@@ -112,11 +120,10 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                     _loadComments(); // Only retry if not a login error
                   }
                 },
-                style: TextButton.styleFrom(
-                  foregroundColor: primaryGreen,
-                ),
+                style: TextButton.styleFrom(foregroundColor: primaryGreen),
                 child: Text(
-                    errorMessage.contains('Please login') ? 'OK' : 'Retry'),
+                  errorMessage.contains('Please login') ? 'OK' : 'Retry',
+                ),
               ),
             ],
           ),
@@ -174,16 +181,19 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text('Error', style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold)),
+          title: Text(
+            'Error',
+            style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold),
+          ),
           content: Text(errorMessage),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           backgroundColor: Colors.white,
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              style: TextButton.styleFrom(
-                foregroundColor: primaryGreen,
-              ),
+              style: TextButton.styleFrom(foregroundColor: primaryGreen),
               child: const Text('OK'),
             ),
           ],
@@ -271,11 +281,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
       color: backgroundGreen,
       child: Row(
         children: [
-          Icon(
-            Icons.reply, 
-            size: 18, 
-            color: midGreen,
-          ),
+          Icon(Icons.reply, size: 18, color: midGreen),
           SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -368,7 +374,10 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                       label: Text('Reply', style: TextStyle(color: midGreen)),
                       onPressed: () => _showReplyField(comment),
                       style: TextButton.styleFrom(
-                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -378,7 +387,10 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                     SizedBox(width: 8),
                     if (comment.likeCount > 0)
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: backgroundGreen.withOpacity(0.4),
                           borderRadius: BorderRadius.circular(16),
@@ -408,12 +420,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
               margin: EdgeInsets.only(left: 36),
               padding: EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(
-                border: Border(
-                  left: BorderSide(
-                    color: lightGreen,
-                    width: 2,
-                  ),
-                ),
+                border: Border(left: BorderSide(color: lightGreen, width: 2)),
               ),
               child: Column(
                 children: comment.replies.map((reply) {
@@ -554,75 +561,72 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                     ),
                   )
                 : _error != null
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.error_outline,
-                              color: primaryGreen,
-                              size: 40,
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              _error!,
-                              style: TextStyle(color: Colors.grey[700]),
-                              textAlign: TextAlign.center,
-                            ),
-                            SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: _loadComments,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: primaryGreen,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 10,
-                                ),
-                              ),
-                              child: Text('Retry'),
-                            ),
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: primaryGreen,
+                          size: 40,
                         ),
-                      )
-                    : _comments.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.chat_bubble_outline,
-                                  color: lightGreen,
-                                  size: 48,
-                                ),
-                                SizedBox(height: 16),
-                                Text(
-                                  'No comments yet',
-                                  style: TextStyle(
-                                    color: Colors.grey[700],
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  'Be the first to comment!',
-                                  style: TextStyle(
-                                    color: primaryGreen,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
+                        SizedBox(height: 16),
+                        Text(
+                          _error!,
+                          style: TextStyle(color: Colors.grey[700]),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _loadComments,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryGreen,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                          )
-                        : ListView.builder(
-                            padding: EdgeInsets.all(16),
-                            itemCount: _comments.length,
-                            itemBuilder: (context, index) =>
-                                _buildCommentItem(_comments[index]),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 10,
+                            ),
                           ),
+                          child: Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  )
+                : _comments.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.chat_bubble_outline,
+                          color: lightGreen,
+                          size: 48,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'No comments yet',
+                          style: TextStyle(
+                            color: Colors.grey[700],
+                            fontSize: 16,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Be the first to comment!',
+                          style: TextStyle(color: primaryGreen, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: EdgeInsets.all(16),
+                    itemCount: _comments.length,
+                    itemBuilder: (context, index) =>
+                        _buildCommentItem(_comments[index]),
+                  ),
           ),
           _buildReplyBar(),
           Padding(

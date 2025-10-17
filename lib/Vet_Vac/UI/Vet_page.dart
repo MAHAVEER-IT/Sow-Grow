@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sow_and_grow/Vet_Vac/Service/pet_service.dart';
@@ -20,9 +20,9 @@ class PetVaccinationApp extends StatelessWidget {
       title: 'Livestocare',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
-          primary: Colors.teal.shade700,
-          secondary: Colors.amber.shade600,
+          seedColor: Colors.green,
+          primary: Colors.green.shade700,
+          secondary: Colors.green.shade400,
         ),
         useMaterial3: true,
         fontFamily: 'Roboto',
@@ -54,18 +54,36 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _fabAnimationController.forward();
   }
 
-  static const platform = MethodChannel('com.example.sms/send');
-
+  // SMS implementation using url_launcher package
   Future<bool> sendSMS(String phone, String message) async {
     try {
-      await platform.invokeMethod('sendSMS', {
-        'phone': phone,
-        'message': message,
-      });
-      print("SMS sent");
-      return true;
-    } on PlatformException catch (e) {
-      print("Error: ${e.message}");
+      // Validate phone number
+      if (phone.isEmpty) {
+        print("Phone number is empty");
+        return false;
+      }
+
+      // Remove any spaces or special characters from phone number
+      String cleanedPhone = phone.replaceAll(RegExp(r'[^\d+]'), '');
+
+      // Create SMS URI with phone number and message
+      final Uri smsUri = Uri(
+        scheme: 'sms',
+        path: cleanedPhone,
+        queryParameters: {'body': message},
+      );
+
+      // Try to launch the SMS app
+      if (await canLaunchUrl(smsUri)) {
+        await launchUrl(smsUri);
+        print("SMS app opened successfully");
+        return true;
+      } else {
+        print("Could not launch SMS app");
+        return false;
+      }
+    } catch (e) {
+      print("Error opening SMS app: $e");
       return false;
     }
   }
@@ -293,7 +311,7 @@ class _PetCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.teal.shade100, Colors.teal.shade50],
+            colors: [Colors.green.shade100, Colors.green.shade50],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -314,13 +332,13 @@ class _PetCard extends StatelessWidget {
                   if (nextVaccine.isNotEmpty)
                     Text(
                       'Next: ${nextVaccine.first.name} - ${DateFormat.MMMd().format(nextVaccine.first.dueDate)}',
-                      style: TextStyle(color: Colors.teal.shade700),
+                      style: TextStyle(color: Colors.green.shade800),
                     ),
                 ],
               ),
             ),
             IconButton(
-              icon: Icon(Icons.delete, color: Colors.red.shade300),
+              icon: Icon(Icons.delete, color: Colors.red.shade400),
               onPressed: onDelete,
             ),
           ],
@@ -366,8 +384,8 @@ class _PetAvatar extends StatelessWidget {
 
     return CircleAvatar(
       radius: size / 2,
-      backgroundColor: Colors.teal.shade100,
-      child: Icon(icon, size: size * 0.6, color: Colors.teal.shade700),
+      backgroundColor: Colors.green.shade100,
+      child: Icon(icon, size: size * 0.6, color: Colors.green.shade700),
     );
   }
 }
@@ -567,7 +585,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                       : 'Failed to send SMS reminder',
                 ),
                 backgroundColor: success
-                    ? Colors.green.shade600
+                    ? Colors.green.shade700
                     : Colors.red.shade600,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
@@ -1167,12 +1185,12 @@ class _VaccineCard extends StatelessWidget {
               const SizedBox(height: 6),
               Row(
                 children: [
-                  Icon(Icons.repeat, size: 14, color: Colors.indigo.shade400),
+                  Icon(Icons.repeat, size: 14, color: Colors.green.shade600),
                   const SizedBox(width: 4),
                   Text(
                     'Recurring (28 days)',
                     style: TextStyle(
-                      color: Colors.indigo.shade400,
+                      color: Colors.green.shade600,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
@@ -1193,15 +1211,15 @@ class _VaccineCard extends StatelessWidget {
   }
 
   Color _getCardColor(BuildContext context, bool isPast, bool isUrgent) {
-    if (isPast) return Colors.grey.shade100;
-    if (isUrgent) return Colors.red.shade50;
+    if (isPast) return Colors.green.shade50;
+    if (isUrgent) return Colors.orange.shade50;
     return Colors.white;
   }
 
   Color _getIconBgColor(BuildContext context, bool isPast, bool isUrgent) {
-    if (isPast) return Colors.grey.shade200;
-    if (isUrgent) return Colors.red.shade100;
-    return Colors.blue.shade50;
+    if (isPast) return Colors.green.shade100;
+    if (isUrgent) return Colors.orange.shade100;
+    return Colors.green.shade50;
   }
 
   IconData _getIcon(bool isPast, bool isUrgent) {
@@ -1211,18 +1229,18 @@ class _VaccineCard extends StatelessWidget {
   }
 
   Color _getIconColor(bool isPast, bool isUrgent) {
-    if (isPast) return Colors.green.shade600;
-    if (isUrgent) return Colors.red.shade600;
-    return Colors.blue.shade600;
+    if (isPast) return Colors.green.shade700;
+    if (isUrgent) return Colors.orange.shade700;
+    return Colors.green.shade600;
   }
 
   Color _getChipColor(bool isUrgent) {
-    if (isUrgent) return Colors.red.shade100;
-    return Colors.blue.shade100;
+    if (isUrgent) return Colors.orange.shade100;
+    return Colors.green.shade100;
   }
 
   Color _getChipTextColor(bool isUrgent) {
-    if (isUrgent) return Colors.red.shade800;
-    return Colors.blue.shade800;
+    if (isUrgent) return Colors.orange.shade800;
+    return Colors.green.shade800;
   }
 }

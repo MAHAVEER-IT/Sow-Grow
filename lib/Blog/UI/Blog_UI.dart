@@ -1,13 +1,12 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sow_and_grow/Blog/Service/Blog_services.dart';
+import 'package:sow_and_grow/Blog/Service/translation_service.dart';
 import 'package:sow_and_grow/Blog/Widgets/comment_dialog.dart'
     show CommentBottomSheet;
-import 'package:sow_and_grow/Blog/UI/post_detail.dart';
+import 'package:sow_and_grow/Blog/Widgets/language_widgets.dart';
+import 'package:sow_and_grow/Blog/Widgets/blog_post_card.dart';
 import 'package:sow_and_grow/Navigations/Drawer.dart';
 import 'package:sow_and_grow/utils/Language/app_localizations.dart';
 import 'package:sow_and_grow/utils/Language/language_provider.dart';
@@ -133,12 +132,6 @@ class _BlogState extends State<Blog> {
 
   // Language selection
   String _currentLanguage = 'en'; // Default to English
-  final List<Map<String, String>> _languages = [
-    {'code': 'en', 'name': 'English'},
-    {'code': 'ta', 'name': 'தமிழ்'},
-    {'code': 'hi', 'name': 'हिन्दी'},
-    {'code': 'ml', 'name': 'മലയാളം'},
-  ];
 
   // Add this list of default farming images
   final List<String> _defaultFarmImages = [
@@ -205,66 +198,6 @@ class _BlogState extends State<Blog> {
     }
   }
 
-  // Function to translate text
-  Future<String> _translateText(String text, String targetLang) async {
-    if (text.isEmpty || targetLang == 'en') {
-      return text;
-    }
-
-    try {
-      // Split text into chunks of approximately 500 characters at sentence boundaries
-      List<String> chunks = [];
-      String currentChunk = '';
-
-      // Split by sentences (looking for . ! ? followed by space)
-      List<String> sentences = text.split(RegExp(r'(?<=[.!?])\s+'));
-
-      for (String sentence in sentences) {
-        if ((currentChunk + sentence).length > 500) {
-          chunks.add(currentChunk);
-          currentChunk = sentence;
-        } else {
-          currentChunk += (currentChunk.isEmpty ? '' : ' ') + sentence;
-        }
-      }
-      if (currentChunk.isNotEmpty) {
-        chunks.add(currentChunk);
-      }
-
-      // Translate each chunk
-      List<String> translatedChunks = [];
-      for (String chunk in chunks) {
-        // Make API call to MyMemory translation service
-        final url = Uri.parse(
-          'https://api.mymemory.translated.net/get?q=${Uri.encodeComponent(chunk)}&langpair=en|$targetLang',
-        );
-
-        final response = await http.get(url);
-
-        if (response.statusCode == 200) {
-          final data = json.decode(response.body);
-
-          if (data['responseStatus'] == 200 && data['responseData'] != null) {
-            translatedChunks.add(data['responseData']['translatedText']);
-          } else {
-            translatedChunks.add(chunk); // Keep original if translation fails
-          }
-        } else {
-          translatedChunks.add(chunk); // Keep original if request fails
-        }
-
-        // Add a small delay between requests to avoid rate limiting
-        await Future.delayed(Duration(milliseconds: 300));
-      }
-
-      // Combine translated chunks
-      return translatedChunks.join(' ');
-    } catch (e) {
-      print('Translation error: $e');
-      return text; // Return original text if translation fails
-    }
-  }
-
   // Function to translate all posts
   Future<void> _translatePosts(String langCode) async {
     if (langCode == 'en') {
@@ -286,14 +219,13 @@ class _BlogState extends State<Blog> {
       for (int i = 0; i < _blogPosts.length; i++) {
         BlogPost post = _blogPosts[i];
 
-        // Translate title
-        String translatedTitle = await _translateText(
+        // Translate title and content using TranslationService
+        String translatedTitle = await TranslationService.translateText(
           post.originalTitle,
           langCode,
         );
 
-        // Translate content
-        String translatedContent = await _translateText(
+        String translatedContent = await TranslationService.translateText(
           post.originalContent,
           langCode,
         );
@@ -327,54 +259,14 @@ class _BlogState extends State<Blog> {
 
   // Show language selection dialog
   void _showLanguageDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            AppLocalizations.translate(
-              'selectLanguage',
-              Provider.of<LanguageProvider>(context).currentLanguage,
-            ),
-          ),
-          content: Container(
-            width: double.minPositive,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: _languages.map((language) {
-                return ListTile(
-                  title: Text(language['name']!),
-                  leading: Radio<String>(
-                    value: language['code']!,
-                    groupValue: _currentLanguage,
-                    onChanged: (String? value) {
-                      Navigator.pop(context);
-                      if (value != null && value != _currentLanguage) {
-                        setState(() {
-                          _currentLanguage = value;
-                        });
-                        _translatePosts(value);
-                      }
-                    },
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(
-                AppLocalizations.translate(
-                  'cancel',
-                  Provider.of<LanguageProvider>(context).currentLanguage,
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
+    LanguageSelectionDialog.show(
+      context,
+      currentLanguage: _currentLanguage,
+      onLanguageSelected: (String langCode) {
+        setState(() {
+          _currentLanguage = langCode;
+        });
+        _translatePosts(langCode);
       },
     );
   }
@@ -398,7 +290,7 @@ class _BlogState extends State<Blog> {
     if (!_isAuthenticated) {
       return Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.green.shade800,
+          backgroundColor: Colors.green.shade300,
           title: Text(AppLocalizations.translate('AgriTalks', currentLanguage)),
         ),
         body: Center(
@@ -429,7 +321,7 @@ class _BlogState extends State<Blog> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.green.shade800,
+        backgroundColor: Colors.green.shade300,
         elevation: 0,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -481,7 +373,7 @@ class _BlogState extends State<Blog> {
       floatingActionButton: FloatingActionButton(
         onPressed: _showLanguageDialog,
         tooltip: 'Change Language',
-        backgroundColor: Colors.green.shade800,
+        backgroundColor: Colors.green.shade400,
         child: Icon(Icons.language, color: Colors.white),
       ),
       body: Container(
@@ -489,28 +381,13 @@ class _BlogState extends State<Blog> {
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color.fromRGBO(185, 234, 147, 1),
-              Color.fromRGBO(14, 93, 20, 1),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            colors: [Colors.green.shade50, Colors.green.shade100, Colors.white],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
         ),
         child: _translating
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 20),
-                    Text(
-                      'Translating content...',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                  ],
-                ),
-              )
+            ? TranslationLoadingWidget()
             : RefreshIndicator(
                 onRefresh: _handleRefresh,
                 child: _buildBody(context),
@@ -699,140 +576,12 @@ class _BlogState extends State<Blog> {
   }
 
   Widget _buildPostCard(BlogPost post) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Card(
-        elevation: 5,
-        margin: EdgeInsets.only(bottom: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
-              child: Image.network(
-                post.images.isNotEmpty
-                    ? post.images.first
-                    : _defaultFarmImages[post.postId.hashCode %
-                          _defaultFarmImages.length],
-                height: 200,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Image.network(
-                    _defaultFarmImages[post.postId.hashCode %
-                        _defaultFarmImages.length],
-                    height: 200,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 200,
-                        color: Colors.grey[300],
-                        child: Icon(
-                          Icons.agriculture,
-                          size: 64,
-                          color: Colors.grey[600],
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundImage: NetworkImage(
-                          "https://ui-avatars.com/api/?name=${Uri.encodeComponent(post.authorName.replaceAll(' ', '+'))}",
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            post.authorName,
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            post.createdAt.toString(),
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    post.title,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    post.content,
-                    style: TextStyle(fontSize: 16),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 16),
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          post.likeUsers.contains(userId)
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          color: post.likeUsers.contains(userId)
-                              ? Colors.red
-                              : null,
-                        ),
-                        onPressed: () => _handleLike(post.postId),
-                      ),
-                      Text('${post.likeCount}'),
-                      SizedBox(width: 16),
-                      IconButton(
-                        icon: Icon(Icons.comment_outlined),
-                        onPressed: () => _showComments(post.postId),
-                      ),
-                      Text('${post.commentCount}'),
-                      Spacer(),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PostDetailPage(post: post),
-                            ),
-                          );
-                        },
-                        child: Text(
-                          AppLocalizations.translate(
-                            'readMore',
-                            Provider.of<LanguageProvider>(
-                              context,
-                            ).currentLanguage,
-                          ),
-                          style: TextStyle(color: Colors.green.shade800),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+    return BlogPostCard(
+      post: post,
+      userId: userId,
+      onLike: _handleLike,
+      onComment: _showComments,
+      defaultImages: _defaultFarmImages,
     );
   }
 }

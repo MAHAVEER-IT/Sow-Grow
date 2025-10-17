@@ -26,10 +26,10 @@ class _BottomNavBarState extends State<BottomNavBar> {
     return Container(
       height: 60,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.green.shade50,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -88,7 +88,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
         decoration: BoxDecoration(
           border: Border(
             top: BorderSide(
-              color: isSelected ? Colors.green.shade800 : Colors.transparent,
+              color: isSelected ? Colors.green.shade700 : Colors.transparent,
               width: 2,
             ),
           ),
@@ -96,12 +96,18 @@ class _BottomNavBarState extends State<BottomNavBar> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: isSelected ? Colors.green.shade800 : Colors.grey),
+            Icon(
+              icon,
+              color: isSelected ? Colors.green.shade900 : Colors.grey.shade700,
+            ),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? Colors.green.shade800 : Colors.grey,
+                color: isSelected
+                    ? Colors.green.shade900
+                    : Colors.grey.shade700,
                 fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
           ],

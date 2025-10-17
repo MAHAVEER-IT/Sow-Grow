@@ -4,6 +4,9 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:sow_and_grow/Auth/Service/Auth_Service.dart';
 import 'package:sow_and_grow/Auth/UI/loginPage.dart';
+import 'package:sow_and_grow/Auth/UI/widgets/auth_text_field.dart';
+import 'package:sow_and_grow/Auth/UI/widgets/auth_constants.dart';
+import 'package:sow_and_grow/Auth/UI/widgets/snackbar_helper.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -24,9 +27,6 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => _isLoading = true);
 
     try {
-      print(
-        'Sending signup data - Location: ${_location.text}',
-      ); // Add debug log
       final result = await _authService.signup(
         username: _email.text.split('@')[0], // Generate username from email
         password: _password.text,
@@ -38,16 +38,7 @@ class _RegisterPageState extends State<RegisterPage> {
       );
 
       if (result['success']) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Registration successful'),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+        SnackbarHelper.showSuccess(context, 'Registration successful');
 
         // Navigate to login page
         Navigator.pushReplacement(
@@ -55,28 +46,10 @@ class _RegisterPageState extends State<RegisterPage> {
           MaterialPageRoute(builder: (context) => LoginPage()),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message']),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+        SnackbarHelper.showError(context, result['message']);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Registration failed: $e'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+      SnackbarHelper.showError(context, 'Registration failed: $e');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -86,7 +59,7 @@ class _RegisterPageState extends State<RegisterPage> {
     bool isValid = true;
 
     // Email validation
-    if (!emailRegExp.hasMatch(_email.text)) {
+    if (!AuthConstants.emailRegExp.hasMatch(_email.text)) {
       setState(() {
         _emailError = 'Invalid Email';
       });
@@ -133,7 +106,6 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     if (_location.text.isEmpty) {
-      print(_location.text);
       Fluttertoast.showToast(
         msg: 'Location is required',
         toastLength: Toast.LENGTH_SHORT,
@@ -158,16 +130,11 @@ class _RegisterPageState extends State<RegisterPage> {
     return isValid;
   }
 
-  RegExp emailRegExp = RegExp(
-    r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
-  );
-
-  TextEditingController _email = TextEditingController();
-  TextEditingController _password = TextEditingController();
-  TextEditingController _firstName = TextEditingController();
-
-  TextEditingController _phoneNumber = TextEditingController();
-  TextEditingController _location = TextEditingController(); // Add this line
+  final TextEditingController _email = TextEditingController();
+  final TextEditingController _password = TextEditingController();
+  final TextEditingController _firstName = TextEditingController();
+  final TextEditingController _phoneNumber = TextEditingController();
+  final TextEditingController _location = TextEditingController();
 
   String? _emailError;
   String? _passwordError;
@@ -181,21 +148,19 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false, // Disable keyboard animation
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Colors.green.shade800,
-              Colors.green.shade600,
-              Colors.green.shade400,
-            ],
+            colors: [Colors.green.shade50, Colors.green.shade100, Colors.white],
           ),
         ),
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -216,7 +181,7 @@ class _RegisterPageState extends State<RegisterPage> {
       margin: EdgeInsets.only(top: 20),
       child: Column(
         children: [
-          Icon(Icons.eco_rounded, size: 60, color: Colors.white),
+          Icon(Icons.eco_rounded, size: 60, color: Colors.green.shade700),
           SizedBox(height: 10),
           _textAnimation
               ? Text(
@@ -224,12 +189,12 @@ class _RegisterPageState extends State<RegisterPage> {
                   style: TextStyle(
                     fontSize: 36,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Colors.green.shade800,
                     letterSpacing: 1.5,
                     shadows: [
                       Shadow(
                         blurRadius: 10.0,
-                        color: Colors.black45,
+                        color: Colors.green.shade200,
                         offset: Offset(2, 2),
                       ),
                     ],
@@ -239,12 +204,12 @@ class _RegisterPageState extends State<RegisterPage> {
                   style: TextStyle(
                     fontSize: 36,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Colors.green.shade800,
                     letterSpacing: 1.5,
                     shadows: [
                       Shadow(
                         blurRadius: 10.0,
-                        color: Colors.black45,
+                        color: Colors.green.shade200,
                         offset: Offset(2, 2),
                       ),
                     ],
@@ -293,7 +258,7 @@ class _RegisterPageState extends State<RegisterPage> {
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.green.shade800,
+                color: Colors.green.shade600,
               ),
             ),
             SizedBox(height: 5),
@@ -304,7 +269,7 @@ class _RegisterPageState extends State<RegisterPage> {
             SizedBox(height: 25),
 
             // Name field
-            _buildTextField(
+            AuthTextField(
               controller: _firstName,
               label: 'Name',
               icon: Icons.person_outline,
@@ -312,7 +277,7 @@ class _RegisterPageState extends State<RegisterPage> {
             SizedBox(height: 15),
 
             // Email field
-            _buildTextField(
+            AuthTextField(
               controller: _email,
               label: 'Email',
               icon: Icons.email_outlined,
@@ -351,7 +316,7 @@ class _RegisterPageState extends State<RegisterPage> {
             SizedBox(height: 15),
 
             // Location field
-            _buildTextField(
+            AuthTextField(
               controller: _location,
               label: 'City/Village',
               icon: Icons.location_on_outlined,
@@ -360,7 +325,7 @@ class _RegisterPageState extends State<RegisterPage> {
             SizedBox(height: 15),
 
             // Password field
-            _buildTextField(
+            AuthTextField(
               controller: _password,
               label: 'Password',
               icon: Icons.lock_outline,
@@ -401,12 +366,12 @@ class _RegisterPageState extends State<RegisterPage> {
                     value: _selectedItem,
                     icon: Icon(
                       Icons.arrow_drop_down,
-                      color: Colors.green.shade800,
+                      color: Colors.green.shade600,
                     ),
                     underline: SizedBox(),
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.green.shade800,
+                      color: Colors.green.shade600,
                       fontWeight: FontWeight.w500,
                     ),
                     items: _doList.map((String value) {
@@ -415,7 +380,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: Text(
                           value.substring(0, 1).toUpperCase() +
                               value.substring(1),
-                          style: TextStyle(color: Colors.green.shade800),
+                          style: TextStyle(color: Colors.green.shade600),
                         ),
                       );
                     }).toList(),
@@ -436,15 +401,7 @@ class _RegisterPageState extends State<RegisterPage> {
               height: 55,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _handleSignup,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green.shade800,
-                  foregroundColor: Colors.white,
-                  elevation: 5,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                ),
+                style: AuthConstants.primaryButtonStyle,
                 child: _isLoading
                     ? CircularProgressIndicator(
                         color: Colors.white,
@@ -480,82 +437,13 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: Text(
                     "Login",
                     style: TextStyle(
-                      color: Colors.green.shade800,
+                      color: Colors.green.shade600,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
                   ),
                 ),
               ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    IconData? icon,
-    String? errorText,
-    bool obscureText = false,
-    Widget? suffixIcon,
-    TextInputType? keyboardType,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        color: Colors.grey.shade50,
-        border: Border.all(
-          color: errorText != null ? Colors.red : Colors.grey.shade300,
-        ),
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        style: TextStyle(fontSize: 16),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 16),
-          errorText: errorText,
-          prefixIcon: icon != null ? Icon(icon, color: Colors.grey) : null,
-          suffixIcon: suffixIcon,
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-          floatingLabelBehavior: FloatingLabelBehavior.never,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSocialButton({
-    required String text,
-    required String imagePath,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 55,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Colors.grey.shade300),
-          color: Colors.white,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(imagePath, height: 24, width: 24),
-            SizedBox(width: 12),
-            Text(
-              text,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey.shade800,
-              ),
             ),
           ],
         ),
