@@ -76,7 +76,7 @@ Sow&Grow addresses the challenges faced by rural farmers, especially those lacki
 
 ## 👥 Team
 
-**Solo Project** by,
+**Team Project** by,
 K.Mahaveer
 v.Lingesh
 K.Saravanan
